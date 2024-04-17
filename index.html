@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="loader">
+        <div class="spinner-border text-white customSpinner d-flex justify-content-center align-items-center"></div>
+        <img class="spinnerImg" src="img/Logo.png" alt="">
+    </div>
+    <div class="gameScene">
+
+    </div>
+    <div class="gameStartScene gameStartSceneAnim d-none">
+        <button class="d-none">Devam et</button>
+        <button data-click="new">Yeni Oyun</button>
+        <button data-click="settings">Ayarlar</button>
+        <button data-click="close">Çıkış</button>
+    </div>
+    <div class="closeModal closeModalAnim d-none">
+        <div>Emin Misiniz?</div>
+        <div>
+            <button class="text-bg-danger">Evet</button> <!-- onclick="window.close()"-->
+            <button data-click="close" class="text-bg-success">Hayır</button>
+        </div>
+    </div>
+    <div class="settingsScene settingsSceneAnim d-none">
+        <div>Ayarlar</div>
+        <div>
+            <label for="volume">Ses: </label> <input id="volume" type="range" name="volume" min="0" max="10000"></input>
+        </div>
+        <button data-click="close"><span></span><span></span></button>
+        <button data-click="lang"><img src="img/turkiye.png" alt=""></button>
+    </div>
+    <audio id="backgroundMusic" autoplay loop>
+        <source src="music/robbery-of-the-century-152126.mp3" type="audio/mpeg">
+    </audio>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
