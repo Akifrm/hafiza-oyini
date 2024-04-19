@@ -11,37 +11,54 @@
 </head>
 
 <body>
-    <div class="loader">
-        <div class="spinner-border text-white customSpinner d-flex justify-content-center align-items-center"></div>
-        <img class="spinnerImg" src="img/Logo.png" alt="">
-    </div>
-    <div class="gameScene">
-
-    </div>
-    <div class="gameStartScene gameStartSceneAnim d-none">
-        <button class="d-none">Devam et</button>
-        <button data-click="new">Yeni Oyun</button>
-        <button data-click="settings">Ayarlar</button>
-        <button data-click="close">Çıkış</button>
-    </div>
-    <div class="closeModal closeModalAnim d-none">
-        <div>Emin Misiniz?</div>
-        <div>
-            <button class="text-bg-danger">Evet</button> <!-- onclick="window.close()"-->
-            <button data-click="close" class="text-bg-success">Hayır</button>
+    <section>
+        <div class="loader">
+            <div class="spinner-border text-white customSpinner d-flex justify-content-center align-items-center"></div>
+            <img class="spinnerImg" src="img/Logo.png" alt="">
         </div>
-    </div>
-    <div class="settingsScene settingsSceneAnim d-none">
-        <div>Ayarlar</div>
-        <div>
-            <label for="volume">Ses: </label> <input id="volume" type="range" name="volume" min="0" max="10000"></input>
+        <div class="gameScene d-none">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                <div class="cards"></div>
+            </div>
         </div>
-        <button data-click="close"><span></span><span></span></button>
-        <button data-click="lang"><img src="img/turkiye.png" alt=""></button>
-    </div>
+        <div class="gameStartScene gameStartSceneAnim d-none">
+            <button class="d-none">Devam et</button>
+            <button data-click="new">Yeni Oyun</button>
+            <button data-click="settings">Ayarlar</button>
+            <button data-click="close">Çıkış</button>
+        </div>
+        <div class="closeModal closeModalAnim d-none">
+            <div>Emin Misiniz?</div>
+            <div>
+                <button class="text-bg-danger">Evet</button> <!-- onclick="window.close()"-->
+                <button data-click="close" class="text-bg-success">Hayır</button>
+            </div>
+        </div>
+        <div class="settingsScene settingsSceneAnim d-none">
+            <div>Ayarlar</div>
+            <div>
+                <label for="volume">Ses: </label> <input id="volume" type="range" name="volume" min="0"
+                    max="10000"></input>
+            </div>
+            <button data-click="close"><span></span><span></span></button>
+            <button data-click="lang"><img src="img/turkiye.png" alt=""></button>
+        </div>
+        <div class="hardLevel hardLevelAnim d-none">
+            <div class="text-center">
+                Zorluk derecesi seçin
+            </div>
+            <button data-level="easy" class="bg-success">Kolay</button>
+            <button data-level="normal" class="bg-primary">Orta</button>
+            <button data-level="hard" class="bg-danger">Zor</button>
+        </div>
+        <div class="cantClickable cantClickableAnim d-none bg-danger">
+            <span>Lütfen Animasyonun Bitmesini Bekleyin</span>
+        </div>
+    </section>
     <audio id="backgroundMusic" autoplay loop>
         <source src="music/robbery-of-the-century-152126.mp3" type="audio/mpeg">
     </audio>
+
     <script src="js/script.js"></script>
 </body>
 
