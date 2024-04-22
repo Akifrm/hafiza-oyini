@@ -201,23 +201,29 @@ section {
     align-items: center;
     justify-content: space-around;
     flex-wrap: wrap;
-    gap: 1rem;
-    padding: 1rem;
     position: relative;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
 }
 
 .cards .custom-card-div {
     position: absolute;
+    height: 30%;
+    transition: transform .75s, left .75s, top .75s, right .75s, bottom .75s;
 }
+
+/* .cards .custom-card-div.custom-card-div-anim {
+    top: 77.75% !important;
+    left: 5vw !important;
+    transform: rotateZ(90deg) !important;
+} */
 
 .cards .custom-card {
     position: relative;
     display: block;
     background-color: transparent;
     width: 7.5vw;
-    height: 16rem;
+    height: 100%;
 }
 
 .cards .custom-card .card-front {
@@ -238,8 +244,6 @@ section {
     top: 0;
     background-color: red;
     opacity: 0;
-    width: 8.5rem;
-    height: 16rem;
     border-radius: 1rem;
     transform: rotateY(0);
 }
@@ -284,14 +288,14 @@ section {
 
 .cards .custom-card .cardDesing div span {
     display: block;
-    width: 1rem;
-    height: 1rem;
+    width: 1vw;
+    height: 1vw;
 }
 
 .cards .custom-card .cardDesing.midCardDesing div span {
     display: block;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.25vw;
+    height: 1.25vw;
 }
 
 .cards .custom-card .cardDesing div {
@@ -299,18 +303,46 @@ section {
 }
 
 .cards .custom-card .cardNumber {
-    font-size: 1.25rem;
+    font-size: 2vw;
     font-weight: 400;
 }
 
 .gameScene {
     width: 100vw;
-    height: 100vh;
+    height: 100%;
     opacity: 1;
     transition: opacity .3s;
 }
 
 .gameSceneAnim {
+    opacity: 0;
+}
+
+.levelModal {
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    color: white;
+    font-size: 1.5rem;
+    padding: 5rem;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.levelModal button {
+    padding: 1vh 4vh;
+}
+
+.levelModalAnim {
     opacity: 0;
 }
 

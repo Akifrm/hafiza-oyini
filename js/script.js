@@ -1,8 +1,17 @@
 class Game {
     constructor() {
         this.idList;
+        this.brokeListener = [];
         this.isCheckedSize = 0;
-        this.startCount = 4;
+        this.levelList = {
+            1: 6,
+            2: 8,
+            3: 10,
+            4: 12,
+            5: 14
+        }
+        this.level = localStorage.getItem('level') || 1;
+        this.startCount = 6;
         this.defaultYTH = 5;
         this.yth = 0;
         this.skor = 0;
@@ -14,27 +23,31 @@ class Game {
         }, 1);
         this.yth += this.defaultYTH;
     }
-    ready() {
-        let cards = createCards(this.startCount);
+    ready(newLevel = false) {
+        if (typeof newLevel == 'boolean') this.level++;
+        else if (typeof newLevel == 'number') this.level = newLevel;
+        if (this.level > this.levelList.length) return alert('Oyun bitti tebrikler arkaya havai fişek');
+        let cards = createCards(this.levelList[this.level] || 6);
         cards = updateCards(cards);
-        console.log(cards)
         cards = setId(cards);
         let data = createRandomCartPosition(cards);
-        cards = data.cards
-        console.log(cards)
+        cards = data.cards;
         cards = updateCardsPosition(cards);
         this.idList = data.idList
         pushCards(cards);
         customCardsRepeat();
+        return true;
     }
-    restart() {
+    restart(newLevel) {
         const cards = document.querySelector('.cards');
         cards.innerHTML = "";
         this.setSkor(this.yth);
+        this.isCheckedSize = 0;
         this.yth = 0;
         this.yth += this.defaultYTH;
+        this.brokeListener = [];
         globalRepet = [], kacinciyedek = 0, idList = [];
-        this.ready();
+        return this.ready(newLevel);
     }
     setYTH(num) {
         this.yth += num;
@@ -56,6 +69,8 @@ const gameScene = document.querySelector('.gameScene');
 const closeModal = document.querySelector('.closeModal');
 const settingsScene = document.querySelector('.settingsScene');
 const hardLevel = document.querySelector('.hardLevel');
+const levelModal = document.querySelector('.levelModal');
+const LevelEndModal = document.querySelector('.LevelEndModal');
 
 // function variables
 var globalRepet = [], kacinciyedek = 0, idList = [];
@@ -74,22 +89,40 @@ setTimeout(() => {
     // audioElement.setAttribute('loop', "");
     // audioElement.innerHTML = "<source src='music/robbery-of-the-century-152126.mp3' type='audio/mpeg'>";
     // document.body.appendChild(audioElement);
-
-    const audio = document.getElementById('backgroundMusic');
-    const volume = document.getElementById('volume');
-    volume.addEventListener('input', () => {
-        audio.volume = parseFloat(volume.value / 10000);
-    })
-
-    audio.addEventListener('play', function () {
-        volume.value = audio.volume;
-    });
 }, 2500);
+
+const audio = document.getElementById('backgroundMusic');
+const volume = document.getElementById('volume');
+volume.value = localStorage.getItem('volume') * 10000;
+audio.volume = localStorage.getItem('volume');
+volume.addEventListener('input', () => {
+    const num = parseFloat(volume.value / 10000);
+    localStorage.setItem('volume', num);
+    audio.volume = num;
+    audio.play();
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:3000/volume", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    const data = JSON.stringify({ data: `${num}` });
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            console.log(xhr.responseText);
+        }
+    };
+
+    try {
+        xhr.send(data);
+    } catch (e) {
+        console.log(e);
+    }
+})
 
 // button listening
 const gameStartSceneButtons = [...gameStartScene.children].filter(x => x.tagName == 'BUTTON');
 for (const button of gameStartSceneButtons) {
     button.addEventListener('click', e => {
+        audio.play();
         if (button.dataset.click == 'close') {
             closeModal.classList.remove('d-none');
             setTimeout(() => {
@@ -101,7 +134,6 @@ for (const button of gameStartSceneButtons) {
                 settingsScene.classList.remove('settingsSceneAnim');
             }, 1);
         } else if (button.dataset.click == 'new') {
-            game.ready();
             hardLevel.classList.remove('d-none');
             setTimeout(() => {
                 hardLevel.classList.remove('hardLevelAnim');
@@ -147,24 +179,63 @@ for (const button of settingsSceneButtons) {
 //function variables
 let lastClicked, isTimeOut = false, isTimeOutModal = false;
 const hardLevelButtons = [...hardLevel.children].filter(x => x.tagName == 'BUTTON');
+const levelModalButtons = [...levelModal.children].filter(x => x.tagName == 'BUTTON');
 for (const button of hardLevelButtons) {
     button.addEventListener('click', e => {
-        localStorage.setItem('modeLevel', button.dataset.level);
         hardLevel.classList.add('hardLevelAnim');
-        gameStartScene.classList.add('gameStartSceneAnim');
+        levelModal.classList.remove('d-none');
         setTimeout(() => {
-            gameStartScene.classList.add('d-none');
+            levelModal.classList.remove('levelModalAnim');
+        }, 1);
+        setTimeout(() => {
             hardLevel.classList.add('d-none');
-            game.start();
         }, 300);
     })
+}
+
+const LevelEndModalButtons = [...LevelEndModal.children].filter(x => x.tagName == 'BUTTON');
+for (const button of LevelEndModalButtons) {
+    button.addEventListener('click', e => {
+        LevelEndModal.classList.add('LevelEndModalAnim');
+        gameScene.classList.add('gameSceneAnim');
+        gameStartScene.classList.add('gameStartSceneAnim');
+        setTimeout(() => {
+            LevelEndModal.classList.add('d-none');
+            gameStartScene.classList.add('d-none');
+            game.ready(LevelEndModalButtons.indexOf(button) + 1);
+            game.start();
+        }, 300);
+    });
+    if (!(LevelEndModalButtons.indexOf(button) < level)) button.disabled = true;
+}
+
+const level = localStorage.getItem('level') || 1;
+for (const button of levelModalButtons) {
+    button.addEventListener('click', e => {
+        if (!(levelModalButtons.indexOf(button) < level) || levelModalButtons.filter(btn => !btn.disabled).length > level) return;
+        levelModal.classList.add('levelModalAnim');
+        gameScene.classList.add('gameSceneAnim');
+        gameStartScene.classList.add('gameStartSceneAnim');
+        setTimeout(() => {
+            levelModal.classList.add('d-none');
+            gameStartScene.classList.add('d-none');
+            game.ready(levelModalButtons.indexOf(button) + 1);
+            game.start();
+        }, 300);
+    });
+    if (!(levelModalButtons.indexOf(button) < level)) button.disabled = true;
 }
 
 // functions
 function customCardsRepeat() {
     const customCards = document.querySelectorAll('.cards .custom-card>div.card-back');
     for (const crd of customCards) {
-        crd.addEventListener('click', async e => {
+        let cardBack = crd.parentElement.querySelector('.card-back');
+        let cardFront = crd.parentElement.querySelector('.card-front');
+        cardBack.classList.toggle('card-back-anim');
+        cardFront.classList.toggle('custom-card-anim');
+        crd.addEventListener('click', async () => {
+            if (game.brokeListener.includes(crd)) return;
             if (isTimeOut) {
                 if (!isTimeOutModal) {
                     isTimeOutModal = true
@@ -201,37 +272,59 @@ function customCardsRepeat() {
                 let lastClickedFront = lastClicked.parentElement.querySelector('.card-front');
 
                 isTimeOut = true;
-                setTimeout(() => {
-                    cardBack.classList.toggle('card-back-anim');
-                    cardFront.classList.toggle('custom-card-anim');
-                    lastClickedBack.classList.toggle('card-back-anim');
-                    lastClickedFront.classList.toggle('custom-card-anim');
+                setTimeout(async () => {
                     isTimeOut = false;
-                    isChecked(crd, lastClicked);
+                    let rotate = await isChecked(crd, lastClicked);
+
+                    if (rotate) {
+                        cardBack.classList.toggle('card-back-anim');
+                        cardFront.classList.toggle('custom-card-anim');
+                        lastClickedBack.classList.toggle('card-back-anim');
+                        lastClickedFront.classList.toggle('custom-card-anim');
+                    }
                     lastClicked = undefined;
                 }, 1000);
             }
-        })
+        });
     }
 }
 
-function isChecked(card1, card2) {
+async function isChecked(card1, card2) {
     const customCards = document.querySelectorAll('.cards .custom-card');
 
     let card1ID = game.idList[[...customCards].indexOf(card1.parentNode)];
     let card2ID = game.idList[[...customCards].indexOf(card2.parentNode)];
 
     if (card1ID == card2ID) {
-        card1.parentNode.removeChild(card1);
-        card2.parentNode.removeChild(card2);
+        card2.parentNode.parentNode.style = `
+            top: 77.75% !important;
+            left: ${(game.brokeListener.length > 5 ? 5 : game.brokeListener.length) * 1.5 + 5}vw !important;
+            transform: rotateZ(90deg) !important;
+            z-index: ${game.brokeListener.length};
+        `
+        card1.parentNode.parentNode.style = `
+            top: 77.75% !important;
+            left: ${(game.brokeListener.length > 5 ? 5 : game.brokeListener.length) * 1.5 + 5 + 1.5}vw !important;
+            transform: rotateZ(90deg) !important;
+            z-index: ${game.brokeListener.length + 1};
+        `
+
         game.isCheckedSize++;
         game.setYTH(1);
 
+        game.brokeListener.push(card1, card2);
         if (customCards.length / 2 == game.isCheckedSize) {
-            game.restart();
+            await new Promise(res => setTimeout(() => res(), 1000));
+            if (game.level >= localStorage.getItem('level')) {
+                localStorage.setItem('level', game.level + 1);
+                if (localStorage.getItem(`level-${game.level}`) < game.yth * 10) localStorage.setItem(`level-${game.level}`, game.yth * 10);
+            }
+            game.restart(true);
         }
+        return false;
     } else {
         game.setYTH(-1);
+        return true;
     }
 }
 
@@ -331,18 +424,27 @@ function updateCards(cardsList) {
 
 function updateCardsPosition(cardsList) {
     let cardPosition = {
-        0: 25,
+        0: 30,
         1: 50,
-        2: 75
+        2: 70
     }
 
+    let sizeOfLine = cardsList.length / 2 / 2;
     for (const card of cardsList) {
-        let length = [...cardsList].indexOf(card);
+        let length = [...cardsList].indexOf(card) + 1;
         card.style.transform = 'translate(-50%, -50%)';
-        console.log((length + 1), (100 / (cardsList.length + 1)), cardsList.length + 1, (length + 1) * (100 / (cardsList.length + 1)))
-        console.log(length, cardPosition[Math.ceil([...cardsList].indexOf(card) / 5)])
-        card.style.left = (length + 1) * (100 / (cardsList.length + 1)) + '%';
-        card.style.top = cardPosition[Math.ceil(([...cardsList].indexOf(card) + 1) / 5)] + '%';
+
+        if (cardsList.length > 10) {
+            // card.style.left = (length + 1 > 10 ? length - 10 + 1 : length + 1) * (100 / ((length + 1 > 10 ? cardsList.length - 10 : 10) + 1)) + '%';
+
+            // card.style.top = (length + 1 > 10 ? cardPosition[2] : cardPosition[0]) + '%';
+
+            card.style.left = (length / 2 > sizeOfLine ? length / 2 - sizeOfLine : length / 2) * (91 / (length / 2 > sizeOfLine ? cardsList.length / 2 - sizeOfLine : sizeOfLine)) + '%';
+            card.style.top = (length / 2 > sizeOfLine ? cardPosition[2] : cardPosition[0]) + '%';
+        } else {
+            card.style.left = length * (100 / (cardsList.length + 1)) + '%';
+            card.style.top = '50%';
+        }
     }
 
     return cardsList;

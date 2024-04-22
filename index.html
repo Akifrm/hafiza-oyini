@@ -47,17 +47,29 @@
             <div class="text-center">
                 Zorluk derecesi seçin
             </div>
-            <button data-level="easy" class="bg-success">Kolay</button>
-            <button data-level="normal" class="bg-primary">Orta</button>
-            <button data-level="hard" class="bg-danger">Zor</button>
+            <button data-mode="easy" class="bg-success">Kolay</button>
+            <button data-mode="normal" class="bg-primary">Orta</button>
+            <button data-mode="hard" class="bg-danger">Zor</button>
         </div>
         <div class="cantClickable cantClickableAnim d-none bg-danger">
             <span>Lütfen Animasyonun Bitmesini Bekleyin</span>
         </div>
+        <div class="levelModal levelModalAnim d-none">
+            <button>Level 1</button>
+            <button>Level 2</button>
+            <button>Level 3</button>
+            <button>Level 4</button>
+            <button>Level 5</button>
+        </div>
+        <div class="LevelEndModal LevelEndModalAnim d-none">
+            Kalan YTH: 1
+            <button>Tekrar Oyna</button>
+            <button>Seviyeleri Gör</button>
+            <button>Menüye Dön</button>
+            <button>2. Level</button>
+        </div>
     </section>
-    <audio id="backgroundMusic" autoplay loop>
-        <source src="music/robbery-of-the-century-152126.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="backgroundMusic" autoplay loop preload="auto" src="music/robbery-of-the-century-152126.mp3"></audio>
 
     <script src="js/script.js"></script>
 </body>
