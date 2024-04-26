@@ -1,6 +1,3 @@
-import tr from './language/tr.js';
-import az from './language/az.js';
-import us from './language/us.js';
 class Game {
     constructor() {
         this.idList;
@@ -25,18 +22,8 @@ class Game {
         this.skor = 0;
         this.ythToSkor = 10;
         this.gameHardLevel;
-        this.levelFinished = localStorage.getItem('level-5') != 'null' ? true : false;
-        this.gameFinished = localStorage.getItem('level-5') != 'null' ? true : false;
+        this.levelFinished = false;
         this.playingLevel = 0;
-        this.confettiInterval;
-        this.languageList = {
-            'tr': tr,
-            'az': az,
-            'us': us
-        };
-        this.user = {
-            language: ''
-        };
     }
     start() {
         gameScene.classList.remove('d-none');
@@ -45,33 +32,34 @@ class Game {
         }, 1);
         this.yth += this.defaultYTH;
     }
-    restart(newLevel = false, forCards = false) {
+    restart(newLevel = false) {
         const cardsDiv = document.querySelector('.cards');
         cardsDiv.innerHTML = "";
-
-        if (!forCards) {
-            this.setSkor(this.yth);
-            this.isCheckedSize = 0;
-            this.yth = 0;
-            this.brokeListener = [];
-        }
-        this.levelFinished = false;
+        this.setSkor(this.yth);
+        this.isCheckedSize = 0;
+        this.yth = 0;
+        this.brokeListener = [];
         globalRepet = [], kacinciyedek = 0, idList = [], numberList = [];
-        if (newLevel == 'restart') this.restartLocalStorage();
+        if (newLevel == 'restart') {
+            const volume = localStorage.getItem('volume');
+            localStorage.clear();
+            this.level = 1;
+            localStorage.setItem('volume', volume);
+        }
 
+        if (this.level >= Object.keys(this.levelList).length) return alert('Oyun bitti tebrikler arkaya havai fişek');
         let playingLevel = newLevel == 'restart'
             ? this.level
-            : typeof newLevel == 'boolean' && newLevel == true
+            : newLevel == true
                 ? this.level
                 : typeof newLevel == 'number'
                     ? newLevel
                     : this.level - 1;
-
+        console.log('seviye', playingLevel, newLevel)
         this.playingLevel = 0;
         this.playingLevel += playingLevel;
-        let cards = createCards(this.levelList[playingLevel] || 6);
+        let cards = createCards(this.levelList[playingLevel]);
 
-        console.log('ıvj')
         cards = updateCards(cards);
         cards = setId(cards);
         let data = createRandomCartPosition(cards);
@@ -84,26 +72,14 @@ class Game {
         return true;
     }
     levelEnd(nextLevel = false) {
-        if (this.getGameEnd()) {
-            if (this.playingLevel >= this.level && nextLevel) this.setLevel(this.level + 1);
-            return true;
-        } else if (this.playingLevel >= this.level && nextLevel) this.setLevel(this.level + 1);
-
         const yth = LevelEndModal.querySelector('.yth');
         const skor = LevelEndModal.querySelector('.skor');
-        const loseOrWin = LevelEndModal.querySelector('.loseOrWin');
-        const lang = this.getLang();
-        yth.innerText = `${lang.remaining_yth}${this.yth}`;
-        skor.innerText = `${lang.score}${this.yth * this.ythToSkor}`;
-        loseOrWin.innerText = lang.level_failed;
-        loseOrWin.classList.add('text-danger');
+        yth.innerText = `Kalan YTH: ${game.yth}`;
+        skor.innerText = `Skor: ${game.yth * game.ythToSkor}`;
         if (nextLevel) {
             const nextLevelButton = LevelEndModal.querySelector('button:last-child');
             nextLevelButton.classList.remove('d-none');
             this.levelFinished = true;
-            loseOrWin.innerText = lang.level_success;
-            loseOrWin.classList.remove('text-danger');
-            loseOrWin.classList.add('text-success');
         }
 
         LevelEndModal.classList.remove('d-none');
@@ -114,7 +90,10 @@ class Game {
     setYTH(num) {
         this.yth += num;
 
-        if (this.yth <= 0) this.levelEnd(false);
+        if (this.yth <= 0) {
+            // game.restart();
+            this.levelEnd(false);
+        }
     }
     setSkor(yth) {
         this.skor += yth * this.ythToSkor;
@@ -126,119 +105,12 @@ class Game {
         return true;
     }
     setLevel(level) {
-        if (this.level < Object.keys(this.levelList).length) {
-            this.level = level;
-            localStorage.setItem('level', level);
-            return true;
-        } else return false;
+        this.level = level;
+        localStorage.setItem('level', level);
+        return true;
     }
-    getNeedSkor() {
+    needSkor() {
         return this.gameHardLevelList[this.gameHardLevel];
-    }
-    getTotalSkor() {
-        const level1 = parseInt(localStorage.getItem('level-1'));
-        const level2 = parseInt(localStorage.getItem('level-2'));
-        const level3 = parseInt(localStorage.getItem('level-3'));
-        const level4 = parseInt(localStorage.getItem('level-4'));
-        const level5 = parseInt(localStorage.getItem('level-5'));
-
-        let num = level1 + level2 + level3 + level4 + level5;
-        if (isNaN(num)) throw new Error('i can\'t get level data');
-        return num;
-    }
-    getGameEnd(retrn) {
-        this.gameFinished = this.level >= Object.keys(this.levelList).length;
-        if (retrn && this.level >= Object.keys(this.levelList).length) return true;
-        if (this.level >= Object.keys(this.levelList).length) {
-            gameEndModal.classList.remove('d-none');
-            const skor = this.getTotalSkor();
-            const lang = this.getLang();
-            gameEndModal.querySelector('.yth').innerText = `${lang.total_remaining_yth}${Math.floor(skor / this.ythToSkor)}`;
-            gameEndModal.querySelector('.skor').innerText = `${lang.total_score}${skor}`;
-            // this.restartLocalStorage();
-            removeDnoneOnButton();
-
-            setTimeout(() => {
-                gameEndModal.classList.remove('modalOrSceneAnim');
-            }, 1);
-
-            for (const button of gameStartSceneButtons) {
-                button.disabled = true;
-            }
-
-            const duration = 20 * 1000,
-                animationEnd = Date.now() + duration,
-                defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-            function randomInRange(min, max) {
-                return Math.random() * (max - min) + min;
-            }
-
-            this.confettiInterval = setInterval(function () {
-                const timeLeft = animationEnd - Date.now();
-
-                if (timeLeft <= 0) {
-                    for (const button of gameStartSceneButtons) {
-                        button.disabled = false;
-                    }
-                    document.body.removeEventListener('click', cutstomConfetti)
-                    return clearInterval(this.confettiInterval);
-                }
-
-                const particleCount = 50 * (timeLeft / duration);
-                confetti(
-                    Object.assign({}, defaults, {
-                        particleCount,
-                        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-                    })
-                );
-                confetti(
-                    Object.assign({}, defaults, {
-                        particleCount,
-                        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-                    })
-                );
-            }, 250);
-            document.body.addEventListener('click', cutstomConfetti);
-            return true;
-        } else return false;
-    }
-    restartLocalStorage() {
-        const volume = localStorage.getItem('volume');
-        localStorage.clear();
-        this.level = 1;
-        if (![null, 'null'].includes(volume)) localStorage.setItem('volume', volume);
-    }
-    changeLang(language = 'tr') {
-        const langs = [...settingsScene.querySelectorAll('.language')];
-        this.user.language = language;
-
-        let first = true;
-        for (const lang of langs) {
-            if (lang.dataset.changelang == language) {
-                lang.dataset.order = '1';
-                lang.classList.add('activeLanguage');
-            } else {
-                lang.classList.remove('activeLanguage');
-                if (first) lang.dataset.order = '2';
-                else lang.dataset.order = '3';
-                first = !first;
-            }
-        }
-
-        if (this.getLang() == undefined) {
-            this.user.language = 'us';
-            language = 'us';
-        }
-        const lang = this.getLang();
-
-        for (const text of document.querySelectorAll(`[data-lang]`)) {
-            const txt = text.dataset.lang;
-            text.innerText = txt.replace(`${txt}`, lang[txt]);
-        }
-    }
-    getLang() {
-        return this.languageList[this.user.language];
     }
 }
 
@@ -252,30 +124,27 @@ const hardLevel = document.querySelector('.hardLevel');
 const levelModal = document.querySelector('.levelModal');
 const LevelEndModal = document.querySelector('.LevelEndModal');
 const playerSureModal = document.querySelector('.playerSureModal');
-const gameEndModal = document.querySelector('.gameEndModal');
 
 // function variables
 let globalRepet = [], kacinciyedek = 0, idList = [], lastClicked, isTimeOut = false, isTimeOutModal = false, numberList = [];
 
 const game = new Game();
-game.changeLang((navigator.language || navigator.userLanguage).split('-')[0]);
 removeDnoneOnButton();
-// setTimeout(() => {
-loader.classList.add('modalOrSceneAnim');
-gameStartScene.classList.remove('d-none');
 setTimeout(() => {
-    loader.classList.add('d-none');
-    gameStartScene.classList.remove('modalOrSceneAnim');
-}, 500);
-// }, 2500);
+    loader.classList.add('modalOrSceneAnim');
+    gameStartScene.classList.remove('d-none');
+    setTimeout(() => {
+        loader.classList.add('d-none');
+        gameStartScene.classList.remove('modalOrSceneAnim');
+    }, 500);
+}, 2500);
 
 const audio = document.getElementById('backgroundMusic');
 const volume = document.getElementById('volume');
 const volumeData = parseFloat(localStorage.getItem('volume'));
 
-const volumeNum = parseFloat(isNaN(volumeData) ? .5 : volumeData);
-volume.value = volumeNum * 10000;
-audio.volume = volumeNum;
+volume.value = (isNaN(volumeData) ? .5 : volumeData) * 10000;
+audio.volume = parseFloat(isNaN(volumeData) ? .5 : volumeData);
 
 volume.addEventListener('change', () => {
     try {
@@ -285,12 +154,10 @@ volume.addEventListener('change', () => {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ data: volumeNum })
-        }).catch(() => {
-            console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
-        });
+            body: JSON.stringify({ data: volumeData })
+        }).catch(console.error);
     } catch (e) {
-        console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
+        console.log(e);
     }
 })
 
@@ -332,20 +199,8 @@ for (const button of gameStartSceneButtons) {
                 }, 1);
             }
         } else if (click == 'continue') {
-            if (game.getGameEnd(true)) {
-                gameStartScene.classList.add('modalOrSceneAnim');
-                levelModal.classList.remove('d-none');
-
-                setTimeout(() => {
-                    levelModal.classList.remove('modalOrSceneAnim');
-                }, 1);
-                setTimeout(() => {
-                    gameStartScene.classList.add('d-none');
-                }, 300);
-
-                return;
-            }
             gameStartScene.classList.add('modalOrSceneAnim');
+            console.log(game.level)
             game.restart(game.level);
             setTimeout(() => {
                 gameStartScene.classList.add('d-none');
@@ -366,7 +221,7 @@ for (const button of closeModalButtons) {
         } else {
             window.close();
             setTimeout(() => {
-                alert(game.getLang().close_code);
+                alert('Kapanma kodu çalıştı ama kapanmadı sebebi kullandığın tarayıcı başka tarayıcıda deneyebilirsin (hata konsolda gözüküyor)');
             }, 100);
         }
     })
@@ -383,17 +238,8 @@ for (const button of settingsSceneButtons) {
                 settingsScene.classList.add('d-none');
             }, 300);
         } else if (click == 'lang') {
-            const langs = [...settingsScene.querySelectorAll('.language')];
-
-            for (const lang of langs) {
-                lang.style.top = `${(Number(lang.dataset.order) - 1) * 5 * first + 1}vw`;
-            }
-
-            if (!button.classList.value.includes('activeLanguage')) {
-                game.changeLang(button.dataset.changelang);
-                settingsScene.querySelector('.activeLanguage').classList.remove('activeLanguage');
-                button.classList.add('activeLanguage');
-            }
+            if (first) button.innerHTML += `<img src="img/azerbaycan.png" alt=""><img src="img/us.png" alt="">`;
+            else button.innerHTML = `<img src="img/turkiye.png" alt="">`;
             first = !first;
         }
     })
@@ -462,7 +308,7 @@ for (const button of LevelEndModalButtons) {
     });
 }
 
-const playerSureModalButtons = [...playerSureModal.children[[...playerSureModal.children].length - 1].children].filter(x => x.tagName == 'BUTTON');
+const playerSureModalButtons = [...playerSureModal.children].filter(x => x.tagName == 'BUTTON');
 for (const button of playerSureModalButtons) {
     button.addEventListener('click', e => {
         const { click } = button.dataset;
@@ -492,34 +338,10 @@ for (const button of levelModalButtons) {
         setTimeout(() => {
             levelModal.classList.add('d-none');
             gameStartScene.classList.add('d-none');
+            console.log(levelModalButtons.indexOf(button) + 1, levelModalButtons.indexOf(button), button, levelModalButtons)
             game.restart(levelModalButtons.indexOf(button) + 1);
             game.start();
         }, 300);
-    });
-}
-
-const gameEndModalButtons = [...gameEndModal.children].filter(x => x.tagName == 'BUTTON');
-for (const button of gameEndModalButtons) {
-    button.addEventListener('click', e => {
-        const { click } = button.dataset;
-        if (click == 'back') {
-            clearInterval(game.confettiInterval);
-            for (const button of gameStartSceneButtons) {
-                button.disabled = false;
-            }
-            document.body.removeEventListener('click', cutstomConfetti);
-            gameStartScene.classList.remove('d-none');
-            gameScene.classList.add('modalOrSceneAnim');
-            gameEndModal.classList.add('modalOrSceneAnim');
-
-            setTimeout(() => {
-                gameStartScene.classList.remove('modalOrSceneAnim');
-            }, 1);
-            setTimeout(() => {
-                gameScene.classList.add('d-none');
-                gameEndModal.classList.add('d-none');
-            }, 300);
-        }
     });
 }
 
@@ -532,24 +354,13 @@ function levelModalButtonsDisable() {
 }
 
 function removeDnoneOnButton() {
-    if (localStorage.getItem('hardLevel') && game.level <= Object.keys(game.levelList).length) gameStartScene.querySelector('button').classList.remove('d-none');
-    else gameStartScene.querySelector('button').classList.add('d-none');
-
+    if (localStorage.getItem('hardLevel') && !(game.level >= Object.keys(game.levelList).length)) {
+        gameStartScene.querySelector('button').classList.remove('d-none');
+    }
 }
 levelModalButtonsDisable();
 
 // functions
-function cutstomConfetti(e) {
-    confetti({
-        particleCount: 100,
-        spread: 360,
-        origin: {
-            x: e.clientX / document.body.clientWidth,
-            y: e.clientY / document.body.clientHeight
-        }
-    });
-};
-
 function customCardsRepeat() {
     const customCards = document.querySelectorAll('.cards .custom-card>div.card-back');
     for (const crd of customCards) {
@@ -626,13 +437,13 @@ async function isChecked(card1, card2) {
     if (card1ID == card2ID) {
         card2.parentNode.parentNode.style = `
             top: 76.5%;
-            left: ${(game.brokeListener.length > 7 ? 7 : game.brokeListener.length) * 1.5 + 7}vw;
+            left: ${(game.brokeListener.length > 5 ? 5 : game.brokeListener.length) * 1.5 + 5}vw;
             transform: rotateZ(90deg);
             z-index: ${game.brokeListener.length};
         `
         card1.parentNode.parentNode.style = `
             top: 76.5%;
-            left: ${(game.brokeListener.length > 7 ? 7 : game.brokeListener.length) * 1.5 + 7 + 1.5}vw;
+            left: ${(game.brokeListener.length > 5 ? 5 : game.brokeListener.length) * 1.5 + 5 + 1.5}vw;
             transform: rotateZ(90deg);
             z-index: ${game.brokeListener.length + 1};
         `
@@ -643,9 +454,10 @@ async function isChecked(card1, card2) {
         if (customCards.length / 2 == game.isCheckedSize) {
             await new Promise(res => setTimeout(() => res(), 1000));
             if (game.playingLevel >= game.level && localStorage.getItem(`level-${game.playingLevel >= game.level ? game.level : game.level - 1}`) < game.yth * game.ythToSkor) localStorage.setItem(`level-${game.playingLevel >= game.level ? game.level : game.level - 1}`, game.yth * game.ythToSkor);
-            if (game.yth * game.ythToSkor <= game.getNeedSkor()) {
+            if (game.yth * game.ythToSkor <= game.needSkor()) {
                 game.levelEnd(false);
             } else if (game.level >= (localStorage.getItem('level') || 1)) {
+                if (game.playingLevel >= game.level) game.setLevel(game.level + 1);
                 game.levelEnd(true);
             }
         }
@@ -657,7 +469,9 @@ async function isChecked(card1, card2) {
 }
 
 function createCards(number) {
+    console.log(number)
     if (isNaN(number)) throw new Error('not a number');
+    // const gameCardsDiv = document.querySelector('.gameScene .cards');
     const cardsList = [[], []];
     for (let i = 0; i < number; i++) {
         const newCard = document.createElement('div');
@@ -735,24 +549,11 @@ function updateCards(cardsList) {
 
             let first = true;
             const cardDesing = card.querySelectorAll('.cardDesing');
-            const createCardDesing = createCardDesingFunc(cards.length, card);
+            const createCardDesing = createCardDesingFunc(cards.length);
             let pushGlobal, numm;
             for (const c of cardDesing) {
                 pushGlobal = createCardDesing(c, first ? false : true);
                 first = false;
-            }
-            while (pushGlobal == 'restart') {
-                let first = true;
-                const cardDesing = card.querySelectorAll('.cardDesing');
-                const createCardDesing = createCardDesingFunc(cards.length, card);
-                let pushGlobal, numm;
-                for (const c of cardDesing) {
-                    pushGlobal = createCardDesing(c, first ? false : true);
-                    first = false;
-                }
-                if (pushGlobal == 'restart') continue;
-                if (pushGlobal) numm = pushGlobal(kacinciyedek);
-                if (numm) kacinciyedek = numm;
             }
             if (pushGlobal) numm = pushGlobal(kacinciyedek);
             if (numm) kacinciyedek = numm;
@@ -771,12 +572,19 @@ function updateCardsPosition(cardsList) {
 
     let sizeOfLine = cardsList.length / 2 / 2;
     for (const card of cardsList) {
-        let length = [...cardsList].indexOf(card) + 1;
-        card.style.transform = 'translate(-50%, -50%)';
+        let cardIndex = [...cardsList].indexOf(card) + 1
+        let length = cardIndex <= cardsList.length / 2 ? (cardIndex <= sizeOfLine ? cardIndex : cardIndex - sizeOfLine) : ((cardIndex - cardsList.length / 2) <= sizeOfLine ? (cardIndex - cardsList.length / 2) : (cardIndex - cardsList.length / 2) - sizeOfLine);
+        console.log(cardIndex, sizeOfLine, length)
+        card.style.transform = 'translate(0, -50%)';
 
         if (cardsList.length > 10) {
-            card.style.left = (length / 2 > sizeOfLine ? length / 2 - sizeOfLine : length / 2) * (100 / ((length / 2 > sizeOfLine ? cardsList.length / 2 - sizeOfLine : sizeOfLine) + .5)) + '%';
-            card.style.top = (length / 2 > sizeOfLine ? cardPosition[2] : cardPosition[0]) + '%';
+            // card.style.left = (length + 1 > 10 ? length - 10 + 1 : length + 1) * (100 / ((length + 1 > 10 ? cardsList.length - 10 : 10) + 1)) + '%';
+
+            // card.style.top = (length + 1 > 10 ? cardPosition[2] : cardPosition[0]) + '%';
+            card.style[cardIndex <= cardsList.length / 2 ? (cardIndex <= sizeOfLine ? 'left' : 'right') : ((cardIndex - cardsList.length / 2) <= sizeOfLine ? 'left' : 'right')] =
+                (length - .75) * (50 / sizeOfLine) + '%';
+                // (cardIndex / 2 > sizeOfLine ? cardIndex / 2 - sizeOfLine : cardIndex / 2) * (50 / (cardIndex / 2 > sizeOfLine ? cardsList.length / 2 - sizeOfLine : sizeOfLine)) + '%';
+            card.style.top = (cardIndex / 2 > sizeOfLine ? cardPosition[2] : cardPosition[0]) + '%';
         } else {
             card.style.left = length * (100 / (cardsList.length + 1)) + '%';
             card.style.top = '50%';
@@ -787,8 +595,8 @@ function updateCardsPosition(cardsList) {
 }
 
 
-function createCardDesingFunc(num, card) {
-    let repeat = [], lastRandomColor, lastItems = [], lastItemsLength = 0, push = true, firstPush = true;
+function createCardDesingFunc(num) {
+    let repeat = [], lastRandomColor, lastItems = [], lastItemsLength = 0, push = true;
 
     function random(length, floor) {
         if (length < 0) throw new Error('The input cannot be a negative number.');
@@ -809,8 +617,8 @@ function createCardDesingFunc(num, card) {
         return color;
     }
 
-    return function (spanCard, repeatLast = false) {
-        const spans = spanCard.querySelectorAll('span');
+    return function (card, repeatLast = false) {
+        const spans = card.querySelectorAll('span');
         let randomColorSize = 0, kacinci = 0;
 
         for (let i = 0; i < spans.length; i++) {
@@ -832,7 +640,6 @@ function createCardDesingFunc(num, card) {
                 if (!rndmColor) rndmColor = 'black';
             } else {
                 push = false;
-                // console.log(globalRepet, kacinciyedek, globalRepet[kacinciyedek])
                 let colorsList = globalRepet[kacinciyedek][kacinci % 3];
                 kacinci++;
                 rndmColor = colorsList[i];
@@ -841,54 +648,25 @@ function createCardDesingFunc(num, card) {
 
             span.style.backgroundColor = rndmColor;
             span.setAttribute('color', `color-${rndmColor}`);
-
             if (i == spans.length - 1 && push) {
                 lastItemsLength++;
                 lastItems.push(repeat);
                 const random = Math.ceil(Math.random() * 9);
-                for (const spanCardNumber of [...spanCard.parentElement.parentElement.querySelectorAll('.cardNumber')]) {
-                    spanCardNumber.innerText = random;
+                for (const cardNumber of [...card.parentElement.parentElement.querySelectorAll('.cardNumber')]) {
+                    cardNumber.innerText = random;
                 }
                 numberList.push(random);
-
-                let brk = false;
-                if (firstPush) {
-                    for (const rpt of globalRepet) {
-                        let globalCount = 0;
-                        for (const span of rpt) {
-                            let count = 0;
-                            for (let i = 0; i < span.length; i++) {
-                                if (span[i] == repeat[i]) {
-                                    count++;
-                                }
-                                if (count >= span.length) globalCount++;
-                            }
-                        }
-                        if (globalCount >= 3) {
-                            brk = true;
-                        }
-                    }
-                    firstPush = !firstPush;
-                }
-
-                console.log('brk')
-                if (brk) {
-                    game.restart(false, true);
-                    console.log('kart sorunu')
-                    // return 'restart';
-                }
 
                 return function () {
                     globalRepet.push(lastItems);
                 }
             } else if (i == spans.length - 1 && !push) {
                 const random = numberList.shift();
-                for (const cardNumber of [...spanCard.parentElement.parentElement.querySelectorAll('.cardNumber')]) {
+                for (const cardNumber of [...card.parentElement.parentElement.querySelectorAll('.cardNumber')]) {
                     cardNumber.innerText = random;
                 }
 
                 return function (n) {
-                    console.log('aaaaaa')
                     return ++n;
                 }
             }
@@ -955,11 +733,4 @@ function pushCards(cards) {
     }
 
     return cardsDiv;
-}
-
-/* dev mode
-*/
-if (!gameStartScene.children[0].classList.value.includes('d-none')) {
-    gameStartScene.children[0].click();
-    levelModal.children[levelModal.children.length - 1].click()
 }

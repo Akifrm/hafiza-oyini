@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
@@ -16,62 +16,86 @@
             <div class="spinner-border text-white customSpinner d-flex justify-content-center align-items-center"></div>
             <img class="spinnerImg" src="img/Logo.png" alt="">
         </div>
-        <div class="gameScene d-none">
+        <div class="gameScene modalOrSceneAnim d-none">
             <div class="w-100 h-100 d-flex align-items-center justify-content-center">
                 <div class="cards"></div>
             </div>
         </div>
-        <div class="gameStartScene gameStartSceneAnim d-none">
-            <button class="d-none">Devam et</button>
-            <button data-click="new">Yeni Oyun</button>
-            <button data-click="settings">Ayarlar</button>
-            <button data-click="close">Çıkış</button>
+        <div class="gameStartScene modalOrSceneAnim d-none">
+            <button data-click="continue" class="d-none" data-lang="continue"></button>
+            <button data-click="new" data-lang="new_game"></button>
+            <button data-click="settings" data-lang="settings"></button>
+            <button data-click="close" data-lang="close"></button>
         </div>
-        <div class="closeModal closeModalAnim d-none">
-            <div>Emin Misiniz?</div>
+        <div class="closeModal modalOrSceneAnim d-none">
+            <div data-lang="sure_text"></div>
             <div>
-                <button class="text-bg-danger">Evet</button> <!-- onclick="window.close()"-->
-                <button data-click="close" class="text-bg-success">Hayır</button>
+                <button class="text-bg-danger" data-lang="yes"></button>
+                <button data-click="close" class="text-bg-success" data-lang="no"></button>
             </div>
         </div>
-        <div class="settingsScene settingsSceneAnim d-none">
-            <div>Ayarlar</div>
+        <div class="settingsScene modalOrSceneAnim d-none">
+            <div data-lang="settings"></div>
             <div>
-                <label for="volume">Ses: </label> <input id="volume" type="range" name="volume" min="0"
-                    max="10000"></input>
+                <label for="volume" data-lang="sound"></label>
+                <input id="volume" type="range" name="volume" min="0" max="10000"></input>
             </div>
             <button data-click="close"><span></span><span></span></button>
-            <button data-click="lang"><img src="img/turkiye.png" alt=""></button>
+            <button data-click="lang" data-changeLang="tr" data-order="1" class="language activeLanguage">
+                <img src="img/turkiye.png">
+            </button>
+            <button data-click="lang" data-changeLang="az" data-order="2" class="language">
+                <img src="img/azerbaycan.png">
+            </button>
+            <button data-click="lang" data-changeLang="us" data-order="3" class="language">
+                <img src="img/us.png">
+            </button>
         </div>
-        <div class="hardLevel hardLevelAnim d-none">
-            <div class="text-center">
-                Zorluk derecesi seçin
+        <div class="hardLevel modalOrSceneAnim d-none">
+            <div class="text-center" data-lang="select_difficulty_level"></div>
+            <button data-mode="easy" class="bg-success" data-lang="easy"></button>
+            <button data-mode="normal" class="bg-primary" data-lang="normal"></button>
+            <button data-mode="hard" class="bg-danger" data-lang="hard"></button>
+        </div>
+        <div class="playerSureModal modalOrSceneAnim d-none">
+            <div data-lang="game_start_text"></div>
+            <div>
+                <button data-click="yes" data-lang="yes"></button>
+                <button data-click="no" data-lang="no"></button>
             </div>
-            <button data-mode="easy" class="bg-success">Kolay</button>
-            <button data-mode="normal" class="bg-primary">Orta</button>
-            <button data-mode="hard" class="bg-danger">Zor</button>
         </div>
-        <div class="cantClickable cantClickableAnim d-none bg-danger">
-            <span>Lütfen Animasyonun Bitmesini Bekleyin</span>
+        <div class="cantClickable modalOrSceneAnim d-none bg-danger">
+            <span data-lang="please_wait_animation_finish_text"></span>
         </div>
-        <div class="levelModal levelModalAnim d-none">
-            <button>Level 1</button>
-            <button>Level 2</button>
-            <button>Level 3</button>
-            <button>Level 4</button>
-            <button>Level 5</button>
+        <div class="levelModal modalOrSceneAnim d-none">
+            <button data-lang="level_1"></button>
+            <button data-lang="level_2"></button>
+            <button data-lang="level_3"></button>
+            <button data-lang="level_4"></button>
+            <button data-lang="level_5"></button>
         </div>
-        <div class="LevelEndModal LevelEndModalAnim d-none">
-            Kalan YTH: 1
-            <button>Tekrar Oyna</button>
-            <button>Seviyeleri Gör</button>
-            <button>Menüye Dön</button>
-            <button>2. Level</button>
+        <div class="LevelEndModal modalOrSceneAnim d-none">
+            <span class="loseOrWin fs-2" data-lang=""></span>
+            <span class="yth" data-lang=""></span>
+            <span class="skor" data-lang=""></span>
+            <div>
+                <button data-click="restart" data-lang="restart"></button>
+                <button data-click="levelModal" data-lang="view_levels"></button>
+                <button data-click="back" data-lang="back_to_menu"></button>
+                <button data-click="next" class="d-none" data-lang="next_level"></button>
+            </div>
+        </div>
+        <div class="gameEndModal modalOrSceneAnim d-none position-absolute z-1">
+            <span class="text-success" data-lang="congratulations_game_completed_text"></span>
+            <span class="yth" data-lang=""></span>
+            <span class="skor" data-lang=""></span>
+            <button data-click="back" data-lang="back_to_menu"></button>
         </div>
     </section>
     <audio id="backgroundMusic" autoplay loop preload="auto" src="music/robbery-of-the-century-152126.mp3"></audio>
 
-    <script src="js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+    <script src="js/script.js" type="module"></script>
 </body>
 
 </html>
