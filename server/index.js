@@ -12,10 +12,12 @@ connect(url).then(() => {
 })
 
 app.use(cors({
-    origin: 'http://127.0.0.1:5500/',
+    origin: ['http://127.0.0.1:5500'],
     credentials: true,
     optionSuccessStatus: 200
 }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');
@@ -25,9 +27,8 @@ app.post('/:req', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { params } = req;
 
-    console.log(req.headers['x-forwarded-for'], req.socket.remoteAddress, req.ip, params, req.connection.remoteAddress);
-
-    users.updateOne({ ip }, { [params.req]: params.data }, { upsert: true }).then(() => {
+    console.log(params.req, req.body, params)
+    users.updateOne({ ip }, { [params.req]: req.body.data }, { upsert: true }).then(() => {
         res.status(200).json({ status: 'ok' });
     }).catch(err => {
         res.status(500).json({ status: 'error' });
