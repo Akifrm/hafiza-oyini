@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 
@@ -92,4 +93,106 @@
     <script src="js/script.js" type="module"></script>
 </body>
 
+=======
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <section>
+        <div class="loader">
+            <div class="spinner-border text-white customSpinner d-flex justify-content-center align-items-center"></div>
+            <img class="spinnerImg" src="img/Logo.png" alt="">
+        </div>
+        <div class="gameScene modalOrSceneAnim d-none">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                <div class="cards"></div>
+            </div>
+        </div>
+        <div class="gameStartScene modalOrSceneAnim d-none">
+            <button data-click="continue" class="d-none" data-lang="continue"></button>
+            <button data-click="new" data-lang="new_game"></button>
+            <button data-click="settings" data-lang="settings"></button>
+            <button data-click="close" data-lang="close"></button>
+        </div>
+        <div class="closeModal modalOrSceneAnim d-none">
+            <div data-lang="sure_text"></div>
+            <div>
+                <button class="text-bg-danger" data-lang="yes"></button>
+                <button data-click="close" class="text-bg-success" data-lang="no"></button>
+            </div>
+        </div>
+        <div class="settingsScene modalOrSceneAnim d-none">
+            <div data-lang="settings"></div>
+            <div>
+                <label for="volume" data-lang="sound"></label>
+                <input id="volume" type="range" name="volume" min="0" max="10000"></input>
+            </div>
+            <button data-click="close"><span></span><span></span></button>
+            <button data-click="lang" data-changeLang="tr" data-order="1" class="language activeLanguage">
+                <img src="img/turkiye.png">
+            </button>
+            <button data-click="lang" data-changeLang="az" data-order="2" class="language">
+                <img src="img/azerbaycan.png">
+            </button>
+            <button data-click="lang" data-changeLang="us" data-order="3" class="language">
+                <img src="img/us.png">
+            </button>
+        </div>
+        <div class="hardLevel modalOrSceneAnim d-none">
+            <div class="text-center" data-lang="select_difficulty_level"></div>
+            <button data-mode="easy" class="bg-success" data-lang="easy"></button>
+            <button data-mode="normal" class="bg-primary" data-lang="normal"></button>
+            <button data-mode="hard" class="bg-danger" data-lang="hard"></button>
+        </div>
+        <div class="playerSureModal modalOrSceneAnim d-none">
+            <div data-lang="game_start_text"></div>
+            <div>
+                <button data-click="yes" data-lang="yes"></button>
+                <button data-click="no" data-lang="no"></button>
+            </div>
+        </div>
+        <div class="cantClickable modalOrSceneAnim d-none bg-danger">
+            <span data-lang="please_wait_animation_finish_text"></span>
+        </div>
+        <div class="levelModal modalOrSceneAnim d-none">
+            <button data-lang="level_1"></button>
+            <button data-lang="level_2"></button>
+            <button data-lang="level_3"></button>
+            <button data-lang="level_4"></button>
+            <button data-lang="level_5"></button>
+        </div>
+        <div class="LevelEndModal modalOrSceneAnim d-none">
+            <span class="loseOrWin fs-2" data-lang=""></span>
+            <span class="yth" data-lang=""></span>
+            <span class="skor" data-lang=""></span>
+            <div>
+                <button data-click="restart" data-lang="restart"></button>
+                <button data-click="levelModal" data-lang="view_levels"></button>
+                <button data-click="back" data-lang="back_to_menu"></button>
+                <button data-click="next" class="d-none" data-lang="next_level"></button>
+            </div>
+        </div>
+        <div class="gameEndModal modalOrSceneAnim d-none position-absolute z-1">
+            <span class="text-success" data-lang="congratulations_game_completed_text"></span>
+            <span class="yth" data-lang=""></span>
+            <span class="skor" data-lang=""></span>
+            <button data-click="back" data-lang="back_to_menu"></button>
+        </div>
+    </section>
+    <audio id="backgroundMusic" autoplay loop preload="auto" src="music/robbery-of-the-century-152126.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+    <script src="js/script.js" type="module"></script>
+</body>
+
+>>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
 </html>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export default {
     "game_start_text": "Yeni bir oyuna başlamak istiyor musunuz?",
     "sure_text": "Emin Misiniz?",
@@ -26,4 +27,38 @@ export default {
     "total_score": "Toplam Skor: ",
     "close_code": "Kapanma kodu çalıştı ama kapanmadı sebebi kullandığın tarayıcı başka tarayıcıda deneyebilirsin (hata konsolda gözüküyor)",
     "remaining_yth": "Kalan YTH: "
+=======
+export default {
+    "game_start_text": "Oyuna Başla",
+    "sure_text": "Emin Misiniz?",
+    "yes": "Evet",
+    "no": "Hayır",
+    "settings": "Ayarlar",
+    "sound": "Ses: ",
+    "select_difficulty_level": "Zorluk Derecesi Seçin",
+    "easy": "Kolay",
+    "normal": "Normal",
+    "hard": "Zor",
+    "please_wait_animation_finish_text": "Lütfen Animasyonun Bitmesini Bekleyin",
+    "level_1": "Seviye 1",
+    "level_2": "Seviye 2",
+    "level_3": "Seviye 3",
+    "level_4": "Seviye 4",
+    "level_5": "Seviye 5",
+    "congratulations_game_completed_text": "Tebrikler! Oyunu Tamamladınız",
+    "back_to_menu": "Menüye Dön",
+    "continue": "Devam Et",
+    "new_game": "Yeni Oyun",
+    "close": "Kapat",
+    "restart": "Yeniden Başlat",
+    "view_levels": "Seviyeleri Görüntüle",
+    "next_level": "Sonraki Seviye",
+    "score": "Skor: ",
+    "level_failed": "Seviyeyi geçemedin",
+    "level_success": "Seviye Başarılı",
+    "total_remaining_yth": "Toplam Kalan YTH: ",
+    "total_score": "Toplam Skor: ",
+    "close_code": "Kapanma kodu çalıştı ama kapanmadı sebebi kullandığın tarayıcı başka tarayıcıda deneyebilirsin (hata konsolda gözüküyor)",
+    "remaining_yth": "Kalan YTH: "
+>>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
 }
