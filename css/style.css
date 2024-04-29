@@ -1,0 +1,492 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+.loader {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .5s;
+}
+
+.customSpinner {
+    width: 10vw;
+    height: 10vw;
+    font-size: 2vw;
+}
+
+.spinnerImg {
+    position: absolute;
+    width: 5vw;
+}
+
+section {
+    background: url(../img/background.png) no-repeat;
+    background-size: cover;
+    background-position: 50%;
+    width: 100vw;
+    height: 100%;
+    max-height: calc(100vw * 9 / 16);
+    position: relative;
+}
+
+button {
+    user-select: none;
+}
+
+.gameStartScene {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2vh;
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.gameStartScene button {
+    padding: .2vw 1.75vw;
+    font-size: clamp(clamp(2px, 1vw, 26px), 1.5vw, 1.5vw);
+    border: .15vw solid black;
+}
+
+.closeModal {
+    background-color: rgba(0, 0, 0, .85);
+    color: white;
+    font-size: 1.5vw;
+    padding: 7vw;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.closeModal div {
+    display: flex;
+    gap: 3vw;
+}
+
+.closeModal div button {
+    padding: .25vw 2vw;
+    border: .05vw solid white;
+}
+
+.settingsScene {
+    width: 100vw;
+    height: 100%;
+    background-color: rgba(0, 0, 0, .975);
+    color: white;
+    font-size: 1.5vw;
+    padding: 5vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.settingsScene input[type="range"] {
+    width: 12.5vw;
+    height: 1.5vw;
+
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        & {
+            overflow: hidden;
+            height: 1.5vw;
+            appearance: none;
+            background-color: #ddd;
+            border-radius: 10vw;
+        }
+
+        &::-webkit-slider-runnable-track {
+            height: 100%;
+            -webkit-appearance: none;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        &::-webkit-slider-thumb {
+            width: 1.5vw;
+            -webkit-appearance: none;
+            height: 100%;
+            cursor: ew-resize;
+            background: #fff;
+            box-shadow: -51vw 0 0 50vw #1597ff, inset 0 0 0 2.5vw #1597ff;
+            transition: box-shadow 0.2s ease-in-out;
+            border-radius: 50%;
+            position: relative;
+            color: black;
+            border: .2vw solid black;
+        }
+
+        &:active::-webkit-slider-thumb {
+            background: #fff;
+            box-shadow: -51vw 0 0 50vw #1597ff, inset 0 0 0 0 #1597ff;
+        }
+    }
+}
+
+.settingsScene button:nth-child(3) {
+    background-color: transparent;
+    border: none;
+    display: inline;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    right: 1vw;
+    top: 1vw;
+}
+
+.settingsScene button.language {
+    background-color: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: .5vw;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 1vw;
+    left: 1vw;
+    transition: top .3s;
+}
+
+.settingsScene button.language img {
+    width: 4vw;
+    height: 4vw;
+    object-fit: cover;
+    position: absolute;
+    border-radius: 100%;
+    overflow: hidden;
+}
+
+.settingsScene button.language {
+    z-index: 1;
+}
+
+.settingsScene button.language.activeLanguage {
+    z-index: 2;
+}
+
+.settingsScene button span {
+    display: block;
+    width: 2.5vw;
+    height: .02vw;
+    background-color: white;
+    margin: .5vw;
+}
+
+.settingsScene button span:first-child {
+    transform: rotate(45deg) translateX(.35vw);
+}
+
+.settingsScene button span:last-child {
+    transform: rotate(-45deg) translateX(.35vw);
+}
+
+.playerSureModal {
+    width: 70vw;
+    height: 50%;
+    background-color: rgba(0, 0, 0, .85);
+    color: white;
+    font-size: 1.5vw;
+    padding: 4vw 6vw;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.playerSureModal div {
+    display: flex;
+    gap: 2vw;
+}
+
+.playerSureModal button:first-child {
+    padding: .1vw 1vw;
+    border: .1vw solid red;
+}
+
+.playerSureModal button:last-child {
+    padding: .1vw 1vw;
+    border: .1vw solid green;
+}
+
+.hardLevel {
+    width: 100vw;
+    height: 100%;
+    background-color: black;
+    color: white;
+    font-size: 2vw;
+    padding: 10vw;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.hardLevel button {
+    border-radius: 15%;
+    padding: .1vw 2vw;
+    color: white;
+    border: .2vw solid rgba(255, 255, 255, .7);
+}
+
+.cards {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    position: relative;
+    width: 100vw;
+    height: 100%;
+    user-select: none;
+    overflow: hidden;
+}
+
+.cards .custom-card-div {
+    position: absolute;
+    height: 30%;
+    transition: transform .75s, left .75s, top .75s, right .75s, bottom .75s;
+}
+
+.cards .custom-card {
+    position: relative;
+    display: block;
+    background-color: transparent;
+    width: 6.25vw;
+    height: 100%;
+}
+
+.cards .custom-card .card-front {
+    text-align: center;
+    border: .1vw solid black;
+    background: linear-gradient(to right, #ff5f6d, #ffc371);
+    border-radius: 7.5%;
+    perspective: 1000px;
+    transform: rotateY(0);
+    position: relative;
+}
+
+.cards .custom-card>div {
+    width: 100%;
+    height: 100%;
+    transition: transform 1s, opacity .25s .25s;
+}
+
+.cards .card-back {
+    position: absolute;
+    top: 0;
+    background-color: red;
+    opacity: 0;
+    border: .1vw solid black;
+    border-radius: 7.5%;
+    transform: rotateY(0);
+}
+
+.cards .card-back.card-back-anim {
+    transform: rotateY(180deg);
+    opacity: 1;
+}
+
+.cards .custom-card .card-front.custom-card-anim {
+    transform: rotateY(180deg);
+    opacity: 0;
+}
+
+.cards .custom-card>.card-front>div:first-child {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.cards .custom-card>.card-front>div:nth-child(2) {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cards .custom-card>.card-front>div:last-child {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform: rotateZ(180deg);
+}
+
+.cards .custom-card .cardDesing div span {
+    display: block;
+    width: .9vw;
+    height: .9vw;
+}
+
+.cards .custom-card .cardDesing.midCardDesing div span {
+    display: block;
+    width: 1.15vw;
+    height: 1.15vw;
+}
+
+.cards .custom-card .cardDesing div {
+    display: flex;
+}
+
+.cards .custom-card .cardDesing:not(.midCardDesing) {
+    position: absolute;
+    top: 2.5vw;
+}
+
+.cards .custom-card .cardNumber {
+    position: absolute;
+    font-size: 2vw;
+    font-weight: 400;
+    margin-left: .1vw;
+}
+
+.gameScene {
+    width: 100vw;
+    height: 100%;
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.levelModal {
+    width: 100vw;
+    height: 100%;
+    background-color: black;
+    color: white;
+    font-size: 2vw;
+    padding: 5vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.levelModal button {
+    padding: 1vw 4vw;
+    border: .25vw solid grey;
+}
+
+.cantClickable {
+    color: white;
+    font-size: 1.75vw;
+    padding: 3vw 7.5vw;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    right: 1.5vw;
+    top: 1.5vw;
+    opacity: 1;
+    transition: opacity .25s;
+}
+
+.LevelEndModal {
+    width: 70vw;
+    min-height: 50%;
+    background-color: rgba(0, 0, 0, .85);
+    color: white;
+    font-size: 2vw;
+    padding: 4vw 6vw;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.LevelEndModal .loseOrWin {
+    font-size: 3.5vw;
+    font-weight: 300;
+}
+
+.LevelEndModal div {
+    max-width: 70%;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25vw;
+}
+
+.LevelEndModal button {
+    padding: .25vw 1.75vw;
+    border: .25vw solid grey;
+}
+
+.gameEndModal {
+    background-color: rgba(0, 0, 0, .95);
+    color: white;
+    font-size: 1.5vw;
+    padding: 5vh;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vw;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: opacity .3s;
+}
+
+.gameEndModal button {
+    border: .1vw solid black;
+    padding: .1vw 1vw;
+}
+
+.modalOrSceneAnim {
+    opacity: 0;
+}

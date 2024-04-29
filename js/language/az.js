@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 export default {
     "game_start_text": "Yeni bir oyuna başlamaq istəyirsinizmi?",
     "sure_text": "Əminsiniz?",
@@ -27,38 +26,4 @@ export default {
     "total_score": "Ümumi Nəticə: ",
     "close_code": "Bağlama kodu işlədi, ancaq bağlanmadı; səbəb, istifadə etdiyiniz brauzerdir (xəta konsolda qeyd olunur)",
     "remaining_yth": "Qalan YTH: "
-=======
-export default {
-    "game_start_text": "Oyunu Başla",
-    "sure_text": "Əminsiniz?",
-    "yes": "Bəli",
-    "no": "Xeyr",
-    "settings": "Ayarlar",
-    "sound": "Səs: ",
-    "select_difficulty_level": "Çətinlik Səviyyəsini Seçin",
-    "easy": "Asan",
-    "normal": "Normal",
-    "hard": "Çətin",
-    "please_wait_animation_finish_text": "Animasiyanın Bitməsini Gözləyin",
-    "level_1": "Səviyyə 1",
-    "level_2": "Səviyyə 2",
-    "level_3": "Səviyyə 3",
-    "level_4": "Səviyyə 4",
-    "level_5": "Səviyyə 5",
-    "congratulations_game_completed_text": "Təbriklər! Oyunu Tamamladınız",
-    "back_to_menu": "Menyuya Qayıt",
-    "continue": "Davam etmek",
-    "new_game": "Yeni Oyun",
-    "close": "Bağla",
-    "restart": "Yenidən Başlat",
-    "view_levels": "Səviyyələri Gör",
-    "next_level": "Növbəti Səviyyə",
-    "score": "Nəticə: ",
-    "level_failed": "Səviyyədən uğur qazanmadınız",
-    "level_success": "Səviyyə Uğurla Tamamlandı",
-    "total_remaining_yth": "Ümumi Qalan YTH: ",
-    "total_score": "Ümumi Nəticə: ",
-    "close_code": "Bağlama kodu işlədi, ancaq bağlanmadı; səbəb, istifadə etdiyiniz brauzerdir (xəta konsolda qeyd olunur)",
-    "remaining_yth": "Qalan YTH: "
->>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
 }

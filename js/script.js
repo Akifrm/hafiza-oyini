@@ -2,31 +2,27 @@ import tr from './language/tr.js';
 import az from './language/az.js';
 import us from './language/us.js';
 class Game {
-    constructor() {
+    constructor(levelCount = 5, startCount = 6) {
         this.idList;
         this.brokeListener = [];
         this.isCheckedSize = 0;
-        this.levelList = {
-            1: 6,
-            2: 8,
-            3: 10,
-            4: 12,
-            5: 14
-        }
+        this.levelList = {};
         this.gameHardLevelList = {
             easy: 50,
             normal: 80,
             hard: 100
         }
-        this.level = Number(localStorage.getItem('level')) || 1;
-        this.startCount = 6;
+        this.level = 1;
+        this.startCount = startCount;
+        this.levelCount = levelCount;
         this.defaultYTH = 5;
         this.yth = 0;
         this.skor = 0;
         this.ythToSkor = 10;
         this.gameHardLevel;
-        this.levelFinished = localStorage.getItem('level-5') != 'null' ? true : false;
-        this.gameFinished = localStorage.getItem('level-5') != 'null' ? true : false;
+        this.skors = [];
+        this.levelFinished;
+        this.gameFinished;
         this.playingLevel = 0;
         this.confettiInterval;
         this.languageList = {
@@ -37,27 +33,28 @@ class Game {
         this.user = {
             language: ''
         };
+        for (let i = 0; i < this.levelCount; i++) {
+            this.levelList[i + 1] = i * 2 + this.startCount;
+            this.skors.push(0);
+        }
+        this.changeLang()
+        setDataToMongo('levelYTH', this.skors);
     }
     start() {
         gameScene.classList.remove('d-none');
         setTimeout(() => {
             gameScene.classList.remove('modalOrSceneAnim');
         }, 1);
-        this.yth += this.defaultYTH;
     }
-    restart(newLevel = false, forCards = false) {
+    restart(newLevel = false) {
         const cardsDiv = document.querySelector('.cards');
         cardsDiv.innerHTML = "";
 
-        if (!forCards) {
-            this.setSkor(this.yth);
-            this.isCheckedSize = 0;
-            this.yth = 0;
-            this.brokeListener = [];
-        }
+        this.isCheckedSize = 0;
+        this.brokeListener = [];
         this.levelFinished = false;
         globalRepet = [], kacinciyedek = 0, idList = [], numberList = [];
-        if (newLevel == 'restart') this.restartLocalStorage();
+        if (newLevel == 'restart') this.restartDatabase();
 
         let playingLevel = newLevel == 'restart'
             ? this.level
@@ -65,13 +62,14 @@ class Game {
                 ? this.level
                 : typeof newLevel == 'number'
                     ? newLevel
-                    : this.level - 1;
+                    : this.level;
 
+        this.yth = 0;
+        this.yth += this.defaultYTH;
         this.playingLevel = 0;
         this.playingLevel += playingLevel;
         let cards = createCards(this.levelList[playingLevel] || 6);
 
-        console.log('ıvj')
         cards = updateCards(cards);
         cards = setId(cards);
         let data = createRandomCartPosition(cards);
@@ -84,17 +82,19 @@ class Game {
         return true;
     }
     levelEnd(nextLevel = false) {
-        if (this.getGameEnd()) {
-            if (this.playingLevel >= this.level && nextLevel) this.setLevel(this.level + 1);
+        if (nextLevel && this.getGameEnd()) {
+            if (this.playingLevel >= this.level) this.setLevel(this.level + 1);
             return true;
         } else if (this.playingLevel >= this.level && nextLevel) this.setLevel(this.level + 1);
 
         const yth = LevelEndModal.querySelector('.yth');
-        const skor = LevelEndModal.querySelector('.skor');
+        const skorDiv = LevelEndModal.querySelector('.skor');
         const loseOrWin = LevelEndModal.querySelector('.loseOrWin');
         const lang = this.getLang();
-        yth.innerText = `${lang.remaining_yth}${this.yth}`;
-        skor.innerText = `${lang.score}${this.yth * this.ythToSkor}`;
+        const skor = nextLevel ? this.getSkor(this.level - 1) : this.yth * this.ythToSkor;
+
+        yth.innerText = `${lang.remaining_yth}${skor / this.ythToSkor}`;
+        skorDiv.innerText = `${lang.score}${skor}`;
         loseOrWin.innerText = lang.level_failed;
         loseOrWin.classList.add('text-danger');
         if (nextLevel) {
@@ -114,21 +114,31 @@ class Game {
     setYTH(num) {
         this.yth += num;
 
-        if (this.yth <= 0) this.levelEnd(false);
+        if (this.yth <= 0) this.levelEnd(this.yth);
     }
-    setSkor(yth) {
-        this.skor += yth * this.ythToSkor;
-        return true;
+    getSkor(level) {
+        if (!level) return this.skor;
+        else return this.skors[level - 1] || 0;
+    }
+    setSkor(level = this.level) {
+        let skor = this.yth * this.ythToSkor;
+        this.skor += skor;
+
+        if (this.skors[level - 1] < skor) {
+            setDataToMongo(`levelYTH.${level - 1}`, skor);
+            this.skors[level - 1] = skor;
+        }
+        return skor;
     }
     setGameLevel(level) {
         this.gameHardLevel = level;
-        localStorage.setItem('hardLevel', level);
+        setDataToMongo('gameHardLevel', level);
         return true;
     }
     setLevel(level) {
         if (this.level < Object.keys(this.levelList).length) {
             this.level = level;
-            localStorage.setItem('level', level);
+            setDataToMongo('level', level);
             return true;
         } else return false;
     }
@@ -136,26 +146,24 @@ class Game {
         return this.gameHardLevelList[this.gameHardLevel];
     }
     getTotalSkor() {
-        const level1 = parseInt(localStorage.getItem('level-1'));
-        const level2 = parseInt(localStorage.getItem('level-2'));
-        const level3 = parseInt(localStorage.getItem('level-3'));
-        const level4 = parseInt(localStorage.getItem('level-4'));
-        const level5 = parseInt(localStorage.getItem('level-5'));
-
-        let num = level1 + level2 + level3 + level4 + level5;
-        if (isNaN(num)) throw new Error('i can\'t get level data');
-        return num;
+        return this.skors.reduce((total, current) => total + current, 0);
     }
     getGameEnd(retrn) {
-        this.gameFinished = this.level >= Object.keys(this.levelList).length;
-        if (retrn && this.level >= Object.keys(this.levelList).length) return true;
-        if (this.level >= Object.keys(this.levelList).length) {
+        let gameEnd = this.level >= Object.keys(this.levelList).length;
+        this.gameFinished = gameEnd;
+        if (retrn && gameEnd) return true;
+        else if (gameEnd) {
+            const customCards = document.querySelectorAll('.cards .custom-card>div.card-back');
+            for (const card of customCards) {
+                this.brokeListener = [];
+                this.brokeListener.push(card);
+            }
+
             gameEndModal.classList.remove('d-none');
             const skor = this.getTotalSkor();
             const lang = this.getLang();
             gameEndModal.querySelector('.yth').innerText = `${lang.total_remaining_yth}${Math.floor(skor / this.ythToSkor)}`;
             gameEndModal.querySelector('.skor').innerText = `${lang.total_score}${skor}`;
-            // this.restartLocalStorage();
             removeDnoneOnButton();
 
             setTimeout(() => {
@@ -203,13 +211,21 @@ class Game {
             return true;
         } else return false;
     }
-    restartLocalStorage() {
-        const volume = localStorage.getItem('volume');
-        localStorage.clear();
+    restartDatabase() {
         this.level = 1;
-        if (![null, 'null'].includes(volume)) localStorage.setItem('volume', volume);
+        this.gameHardLevel = "";
+        this.skor = 0;
+        this.levelFinished = false;
+        this.gameFinished = false;
+        this.skors = [];
+
+        for (let i = 0; i < Object.keys(this.levelList).length; i++) {
+            this.skors.push(0);
+        }
+
+        setDataToMongo('restart');
     }
-    changeLang(language = 'tr') {
+    changeLang(language = (navigator.language || navigator.userLanguage).split('-')[0] || 'tr') {
         const langs = [...settingsScene.querySelectorAll('.language')];
         this.user.language = language;
 
@@ -240,63 +256,69 @@ class Game {
     getLang() {
         return this.languageList[this.user.language];
     }
+    setData(data) {
+        this.skors = data.levelYTH;
+        this.level = data.level;
+        this.gameHardLevel = data.gameHardLevel;
+
+        let finish = data.levelYTH[data.levelYTH.length - 1] > 0 ? true : false
+        this.levelFinished = finish;
+        this.gameFinished = finish;
+    }
 }
 
-// all scene variables
-const loader = document.querySelector('.loader');
-const gameStartScene = document.querySelector('.gameStartScene');
-const gameScene = document.querySelector('.gameScene');
-const closeModal = document.querySelector('.closeModal');
-const settingsScene = document.querySelector('.settingsScene');
-const hardLevel = document.querySelector('.hardLevel');
-const levelModal = document.querySelector('.levelModal');
-const LevelEndModal = document.querySelector('.LevelEndModal');
-const playerSureModal = document.querySelector('.playerSureModal');
-const gameEndModal = document.querySelector('.gameEndModal');
+// all scenes and modals variables
+const loader = document.querySelector('.loader'),
+    gameStartScene = document.querySelector('.gameStartScene'),
+    gameScene = document.querySelector('.gameScene'),
+    closeModal = document.querySelector('.closeModal'),
+    settingsScene = document.querySelector('.settingsScene'),
+    hardLevel = document.querySelector('.hardLevel'),
+    levelModal = document.querySelector('.levelModal'),
+    LevelEndModal = document.querySelector('.LevelEndModal'),
+    playerSureModal = document.querySelector('.playerSureModal'),
+    gameEndModal = document.querySelector('.gameEndModal')
 
 // function variables
-let globalRepet = [], kacinciyedek = 0, idList = [], lastClicked, isTimeOut = false, isTimeOutModal = false, numberList = [];
+let globalRepet = [],
+    kacinciyedek = 0,
+    idList = [],
+    lastClicked,
+    isTimeOut = false,
+    isTimeOutModal = false,
+    numberList = [];
 
-const game = new Game();
-game.changeLang((navigator.language || navigator.userLanguage).split('-')[0]);
+const game = new Game(12, 6);
+createLevelButtons();
+let data = await getDataToMongo();
+if (data) game.setData(data);
+else {
+    await setDataToMongo('restart');
+    data = await getDataToMongo();
+    if (data) game.setData(data);
+}
 removeDnoneOnButton();
-// setTimeout(() => {
-loader.classList.add('modalOrSceneAnim');
-gameStartScene.classList.remove('d-none');
 setTimeout(() => {
-    loader.classList.add('d-none');
-    gameStartScene.classList.remove('modalOrSceneAnim');
-}, 500);
-// }, 2500);
+    loader.classList.add('modalOrSceneAnim');
+    gameStartScene.classList.remove('d-none');
+    setTimeout(() => {
+        loader.classList.add('d-none');
+        gameStartScene.classList.remove('modalOrSceneAnim');
+    }, 500);
+}, 2500);
 
 const audio = document.getElementById('backgroundMusic');
 const volume = document.getElementById('volume');
-const volumeData = parseFloat(localStorage.getItem('volume'));
-
-const volumeNum = parseFloat(isNaN(volumeData) ? .5 : volumeData);
-volume.value = volumeNum * 10000;
-audio.volume = volumeNum;
+volume.value = ((data && data.volume) ? data.volume : .5) * 10000;
+audio.volume = (data && data.volume) ? data.volume : .5;
 
 volume.addEventListener('change', () => {
-    try {
-        fetch('http://localhost:3000/volume', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ data: volumeNum })
-        }).catch(() => {
-            console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
-        });
-    } catch (e) {
-        console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
-    }
-})
+    const num = parseFloat(volume.value / 10000);
+    setDataToMongo('volume', num);
+});
 
 volume.addEventListener('input', () => {
     const num = parseFloat(volume.value / 10000);
-    localStorage.setItem('volume', num);
     audio.volume = num;
     audio.play();
 })
@@ -318,7 +340,7 @@ for (const button of gameStartSceneButtons) {
                 settingsScene.classList.remove('modalOrSceneAnim');
             }, 1);
         } else if (click == 'new') {
-            if (localStorage.getItem('hardLevel')) {
+            if (game.gameHardLevel) {
                 playerSureModal.classList.remove('d-none');
 
                 setTimeout(() => {
@@ -467,11 +489,16 @@ for (const button of playerSureModalButtons) {
     button.addEventListener('click', e => {
         const { click } = button.dataset;
         if (click == 'yes') {
-            gameStartScene.classList.add('modalOrSceneAnim');
             game.restart('restart');
+            gameStartScene.classList.add('modalOrSceneAnim');
+            hardLevel.classList.remove('d-none');
+            levelModalButtonsDisable();
+
+            setTimeout(() => {
+                hardLevel.classList.remove('modalOrSceneAnim');
+            }, 1);
             setTimeout(() => {
                 gameStartScene.classList.add('d-none');
-                game.start();
             }, 300);
         }
         playerSureModal.classList.add('modalOrSceneAnim');
@@ -532,13 +559,25 @@ function levelModalButtonsDisable() {
 }
 
 function removeDnoneOnButton() {
-    if (localStorage.getItem('hardLevel') && game.level <= Object.keys(game.levelList).length) gameStartScene.querySelector('button').classList.remove('d-none');
+    if (game.gameHardLevel && game.level <= Object.keys(game.levelList).length) gameStartScene.querySelector('button').classList.remove('d-none');
     else gameStartScene.querySelector('button').classList.add('d-none');
-
 }
 levelModalButtonsDisable();
 
-// functions
+function createLevelButtons() {
+    let length = Object.keys(game.levelList).length;
+    for (let i = 0; i < length; i++) {
+        const button = document.createElement('button');
+        button.setAttribute('data-lang', 'level');
+
+        button.innerText = `${game.getLang()['level']} ${i + 1}`;
+
+        levelModal.appendChild(button);
+    }
+
+    if (length > 7) levelModal.style.flexDirection = 'column';
+}
+
 function cutstomConfetti(e) {
     confetti({
         particleCount: 100,
@@ -550,17 +589,19 @@ function cutstomConfetti(e) {
     });
 };
 
+
+// functions
 function customCardsRepeat() {
     const customCards = document.querySelectorAll('.cards .custom-card>div.card-back');
     for (const crd of customCards) {
 
         /*
             dev mode
-        */
         let cardBack = crd.parentElement.querySelector('.card-back');
         let cardFront = crd.parentElement.querySelector('.card-front');
         cardBack.classList.toggle('card-back-anim');
         cardFront.classList.toggle('custom-card-anim');
+        */
 
         crd.addEventListener('click', async () => {
             if (game.brokeListener.includes(crd)) return;
@@ -584,16 +625,11 @@ function customCardsRepeat() {
                 }
                 return;
             }
-            if (lastClicked == crd) {
-                isTimeOut = true;
-                await new Promise(res => setTimeout(res, 100));
-                isTimeOut = false;
-            }
+            if (lastClicked == crd) return;
             let cardBack = crd.parentElement.querySelector('.card-back');
             let cardFront = crd.parentElement.querySelector('.card-front');
             cardBack.classList.toggle('card-back-anim');
             cardFront.classList.toggle('custom-card-anim');
-            if (lastClicked == crd) return lastClicked = undefined;
             if (!lastClicked) lastClicked = crd;
             else {
                 let lastClickedBack = lastClicked.parentElement.querySelector('.card-back');
@@ -642,12 +678,10 @@ async function isChecked(card1, card2) {
         game.brokeListener.push(card1, card2);
         if (customCards.length / 2 == game.isCheckedSize) {
             await new Promise(res => setTimeout(() => res(), 1000));
-            if (game.playingLevel >= game.level && localStorage.getItem(`level-${game.playingLevel >= game.level ? game.level : game.level - 1}`) < game.yth * game.ythToSkor) localStorage.setItem(`level-${game.playingLevel >= game.level ? game.level : game.level - 1}`, game.yth * game.ythToSkor);
-            if (game.yth * game.ythToSkor <= game.getNeedSkor()) {
-                game.levelEnd(false);
-            } else if (game.level >= (localStorage.getItem('level') || 1)) {
-                game.levelEnd(true);
-            }
+            const skor = game.setSkor();
+
+            if (skor >= game.getNeedSkor()) game.levelEnd(true);
+            else game.levelEnd(false);
         }
         return false;
     } else {
@@ -673,91 +707,86 @@ function createCards(number) {
 }
 
 function updateCards(cardsList) {
-    for (const cards of cardsList) {
-        for (const card of cards) {
-            card.innerHTML = `
-                <div class="custom-card">
-                    <div class="card-front custom-card-anim">
-                        <div>
-                            <span class="cardNumber"></span>
-                            <div class="cardDesing">
-                                <div>
-                                    <span></span>
-                                    <span></span>
+    let while2 = false;
+    do {
+        while2 = false;
+        globalRepet = [], kacinciyedek = 0, idList = [], numberList = [];
+        for (const cards of cardsList) {
+            for (const card of cards) {
+                card.innerHTML = `
+                    <div class="custom-card">
+                        <div class="card-front custom-card-anim">
+                            <div>
+                                <span class="cardNumber"></span>
+                                <div class="cardDesing">
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
+                            </div>
+                            <div>
+                                <div class="cardDesing midCardDesing">
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
+                            </div>
+                            <div>
+                                <span class="cardNumber"></span>
+                                <div class="cardDesing">
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <div>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div>
-                            <div class="cardDesing midCardDesing">
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="cardNumber"></span>
-                            <div class="cardDesing">
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                                <div>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            </div>
-                        </div>
+                        <div class='card-back card-back-anim'></div>
                     </div>
-                    <div class='card-back card-back-anim'></div>
-                </div>
-            `
+                `
 
-            let first = true;
-            const cardDesing = card.querySelectorAll('.cardDesing');
-            const createCardDesing = createCardDesingFunc(cards.length, card);
-            let pushGlobal, numm;
-            for (const c of cardDesing) {
-                pushGlobal = createCardDesing(c, first ? false : true);
-                first = false;
-            }
-            while (pushGlobal == 'restart') {
                 let first = true;
                 const cardDesing = card.querySelectorAll('.cardDesing');
                 const createCardDesing = createCardDesingFunc(cards.length, card);
                 let pushGlobal, numm;
                 for (const c of cardDesing) {
                     pushGlobal = createCardDesing(c, first ? false : true);
+                    if (pushGlobal == 'restart') {
+                        while2 = true;
+                    }
                     first = false;
                 }
-                if (pushGlobal == 'restart') continue;
                 if (pushGlobal) numm = pushGlobal(kacinciyedek);
                 if (numm) kacinciyedek = numm;
             }
-            if (pushGlobal) numm = pushGlobal(kacinciyedek);
-            if (numm) kacinciyedek = numm;
         }
-    }
+    } while (while2);
 
     return cardsList;
 }
@@ -799,7 +828,7 @@ function createCardDesingFunc(num, card) {
     }
 
     function randomColor() {
-        const colors = ["orange", "blue", "yellow", "purple", "green", "pink", "turquoise", "red", "navy", "brown"];
+        const colors = ["#FFA500", "#0047AB", "#8B0000", "#32CD32", "#FF7F50", "#556B2F", "#DA70D6", "#FFE4C4", "#C0C0C0"];
         let color;
         do {
             color = colors[Math.floor(Math.random() * (colors.length + 1))];
@@ -832,7 +861,6 @@ function createCardDesingFunc(num, card) {
                 if (!rndmColor) rndmColor = 'black';
             } else {
                 push = false;
-                // console.log(globalRepet, kacinciyedek, globalRepet[kacinciyedek])
                 let colorsList = globalRepet[kacinciyedek][kacinci % 3];
                 kacinci++;
                 rndmColor = colorsList[i];
@@ -870,13 +898,7 @@ function createCardDesingFunc(num, card) {
                     }
                     firstPush = !firstPush;
                 }
-
-                console.log('brk')
-                if (brk) {
-                    game.restart(false, true);
-                    console.log('kart sorunu')
-                    // return 'restart';
-                }
+                if (brk) return 'restart';
 
                 return function () {
                     globalRepet.push(lastItems);
@@ -888,7 +910,6 @@ function createCardDesingFunc(num, card) {
                 }
 
                 return function (n) {
-                    console.log('aaaaaa')
                     return ++n;
                 }
             }
@@ -957,9 +978,23 @@ function pushCards(cards) {
     return cardsDiv;
 }
 
-/* dev mode
-*/
-if (!gameStartScene.children[0].classList.value.includes('d-none')) {
-    gameStartScene.children[0].click();
-    levelModal.children[levelModal.children.length - 1].click()
+async function setDataToMongo(where, data) {
+    return fetch(`http://localhost:3000/${where}`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data })
+    }).catch(() => {
+        console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
+        return false;
+    });
+}
+
+async function getDataToMongo(where = "") {
+    return fetch(`http://localhost:3000/${where}`).then(res => res.json()).then(({ data }) => data).catch(() => {
+        console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
+        return false;
+    });
 }

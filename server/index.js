@@ -19,18 +19,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-<<<<<<< HEAD
-=======
-app.get('/', (req, res) => {
-    res.send('Hello, World!');
-});
-
->>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
 app.post('/:req', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { params } = req;
 
-<<<<<<< HEAD
     let data = { [params.req]: req.body.data };
     let restart = {
         gameHardLevel: "",
@@ -38,10 +30,6 @@ app.post('/:req', (req, res) => {
         levelYTH: [0]
     }
     users.updateOne({ ip }, { $set: params.req == 'restart' ? restart : data }, { upsert: true }).then(() => {
-=======
-    console.log(params.req, req.body, params)
-    users.updateOne({ ip }, { [params.req]: req.body.data }, { upsert: true }).then(() => {
->>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
         res.status(200).json({ status: 'ok' });
     }).catch(err => {
         res.status(500).json({ status: 'error' });
@@ -49,7 +37,6 @@ app.post('/:req', (req, res) => {
     })
 });
 
-<<<<<<< HEAD
 app.get('/:req', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { params } = req;
@@ -75,8 +62,6 @@ app.get('/', (req, res) => {
     })
 });
 
-=======
->>>>>>> d8eb13a8315af6d83cfaeeae243848d164051acd
 app.listen(port, () => {
     console.log(`Sunucu ${port} numaralı port üzerinde çalışıyor`);
 });
