@@ -1,7 +1,0 @@
-dil sistemi
-aynı sayı ve renkler geliyor
-ayarlar sahnesi vw ye çevirilecek
-çıkış emin misiniz kısmında buttonların border gidicek ve vw ye çevirilecek
-yukardakinin aynısını yeni oyun başlatmak ister misiniz modalına
-data önce bitirdiğimiz 5. seviyeyi tekrar oynayıp kaybedince kazandın yazıyor
-mongodb
