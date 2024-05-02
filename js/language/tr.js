@@ -25,5 +25,9 @@ export default {
     "total_remaining_yth": "Toplam Kalan YTH: ",
     "total_score": "Toplam Skor: ",
     "close_code": "Kapanma kodu çalıştı ama kapanmadı sebebi kullandığın tarayıcı başka tarayıcıda deneyebilirsin (hata konsolda gözüküyor)",
-    "remaining_yth": "Kalan YTH: "
+    "remaining_yth": "Kalan YTH: ",
+    "set_skor": "Skorunuzu kaydetmek ister misiniz?",
+    "name": "İsim: ",
+    "save": "Kaydet",
+    "leaderboard": "Liderlik listesini görüntülemek ister misiniz?"
 }

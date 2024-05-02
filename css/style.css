@@ -4,6 +4,7 @@ body {
     align-items: center;
     width: 100vw;
     height: 100vh;
+    background-color: rgba(0, 0, 0, .9);
 }
 
 .loader {
@@ -173,6 +174,11 @@ button {
     top: 1vw;
     left: 1vw;
     transition: top .3s;
+    z-index: 1;
+}
+
+.settingsScene button.language.activeLanguage {
+    z-index: 2;
 }
 
 .settingsScene button.language img {
@@ -182,14 +188,6 @@ button {
     position: absolute;
     border-radius: 100%;
     overflow: hidden;
-}
-
-.settingsScene button.language {
-    z-index: 1;
-}
-
-.settingsScene button.language.activeLanguage {
-    z-index: 2;
 }
 
 .settingsScene button span {
@@ -460,8 +458,9 @@ button {
 }
 
 .LevelEndModal button {
+    font-size: 1.5vw;
     padding: .25vw 1.75vw;
-    border: .25vw solid grey;
+    border: .1vw solid black;
 }
 
 .gameEndModal {
@@ -480,11 +479,108 @@ button {
     transform: translate(-50%, -50%);
     opacity: 1;
     transition: opacity .3s;
+    z-index: 1;
 }
 
 .gameEndModal button {
     border: .1vw solid black;
     padding: .1vw 1vw;
+}
+
+.setSkorModal {
+    width: 50%;
+    height: 70%;
+    background-color: rgba(0, 0, 0, .975);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5vw;
+    padding: 5vh;
+    display: flex;
+    gap: 1vw;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity .3s;
+    z-index: 5;
+}
+
+.setSkorModal input {
+    border: .1vw solid white;
+    outline: none;
+}
+
+.setSkorModal button {
+    border: .1vw solid white;
+    outline: none;
+    padding: .1vw 1vw;
+}
+
+.globalLeaderboard {
+    width: 40%;
+    min-height: 40%;
+    background-color: rgba(0, 0, 0, .975);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5vw;
+    /* display: flex; */
+    gap: 1vw;
+    color: white;
+    /* flex-direction: column;
+    align-items: center;
+    justify-content: center; */
+    padding: 3.5vw;
+    opacity: 1;
+    transition: opacity .3s;
+    z-index: 10;
+}
+
+.globalLeaderboard>div:not(:first-child) {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: .25vw;
+
+}
+
+.globalLeaderboard>div:first-child {
+    width: 100%;
+    position: relative;
+}
+
+.globalLeaderboard button:first-child {
+    position: absolute;
+    width: 3vw;
+    padding: 0;
+    top: -2vw;
+    right: -2vw;
+}
+
+.globalLeaderboard button {
+    background-color: transparent;
+    border: none;
+}
+
+.globalLeaderboard button span {
+    display: block;
+    width: 2.5vw;
+    height: .02vw;
+    background-color: white;
+    margin: .5vw;
+}
+
+.globalLeaderboard button span:first-child {
+    transform: rotate(45deg) translateX(.35vw);
+}
+
+.globalLeaderboard button span:last-child {
+    transform: rotate(-45deg) translateX(.35vw);
 }
 
 .modalOrSceneAnim {

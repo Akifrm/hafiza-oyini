@@ -24,5 +24,10 @@ export default model("users", new Schema({
         type: [Number],
         required: true,
         default: [0, 0, 0, 0, 0]
+    },
+    seted: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 }));
