@@ -25,5 +25,9 @@ export default {
     "total_remaining_yth": "Total Remaining YTH: ",
     "total_score": "Total Score: ",
     "close_code": "The closing code ran but did not close; you may try in a different browser (error logged in console)",
-    "remaining_yth": "Remaining YTH: "
+    "remaining_yth": "Remaining YTH: ",
+    "set_skor": "Would you like to save your score?",
+    "name": "Name: ",
+    "save": "Save",
+    "leaderboard": "Would you like to view the leaderboard?"
 }

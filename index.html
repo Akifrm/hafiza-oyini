@@ -79,11 +79,25 @@
                 <button data-click="next" class="d-none" data-lang="next_level"></button>
             </div>
         </div>
-        <div class="gameEndModal modalOrSceneAnim d-none position-absolute z-1">
+        <div class="gameEndModal modalOrSceneAnim d-none">
             <span class="text-success" data-lang="congratulations_game_completed_text"></span>
             <span class="yth" data-lang=""></span>
             <span class="skor" data-lang=""></span>
             <button data-click="back" data-lang="back_to_menu"></button>
+            <button data-click="setSkor" data-lang="set_skor"></button>
+            <button data-click="globalLeaderboard" data-lang="leaderboard"></button>
+        </div>
+        <div class="setSkorModal modalOrSceneAnim d-none">
+            <label for="name-input" data-lang="name"></label><input id="name-input" type="text" name="name">
+            <button data-lang="save"></button>
+        </div>
+        <div class="globalLeaderboard modalOrSceneAnim d-none">
+            <div>
+                <button data-click="close"><span></span><span></span></button>
+            </div>
+            <div class="leaderboard">
+                
+            </div>
         </div>
     </section>
     <audio id="backgroundMusic" autoplay loop preload="auto" src="music/robbery-of-the-century-152126.mp3"></audio>

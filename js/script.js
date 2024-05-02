@@ -25,6 +25,7 @@ class Game {
         this.gameFinished;
         this.playingLevel = 0;
         this.confettiInterval;
+        this.setedVar = false;
         this.languageList = {
             'tr': tr,
             'az': az,
@@ -37,8 +38,7 @@ class Game {
             this.levelList[i + 1] = i * 2 + this.startCount;
             this.skors.push(0);
         }
-        this.changeLang()
-        setDataToMongo('levelYTH', this.skors);
+        this.changeLang();
     }
     start() {
         gameScene.classList.remove('d-none');
@@ -120,13 +120,14 @@ class Game {
         if (!level) return this.skor;
         else return this.skors[level - 1] || 0;
     }
-    setSkor(level = this.level) {
+    async setSkor(level = this.level) {
         let skor = this.yth * this.ythToSkor;
         this.skor += skor;
 
         if (this.skors[level - 1] < skor) {
-            setDataToMongo(`levelYTH.${level - 1}`, skor);
+            this.seted = false;
             this.skors[level - 1] = skor;
+            await setDataToMongo(`levelYTH.${level - 1}`, skor);
         }
         return skor;
     }
@@ -164,6 +165,8 @@ class Game {
             const lang = this.getLang();
             gameEndModal.querySelector('.yth').innerText = `${lang.total_remaining_yth}${Math.floor(skor / this.ythToSkor)}`;
             gameEndModal.querySelector('.skor').innerText = `${lang.total_score}${skor}`;
+            if (this.seted) gameEndModal.querySelector('[data-click="setSkor"]').classList.add('d-none');
+            else gameEndModal.querySelector('[data-click="setSkor"]').classList.remove('d-none');
             removeDnoneOnButton();
 
             setTimeout(() => {
@@ -222,6 +225,7 @@ class Game {
         for (let i = 0; i < Object.keys(this.levelList).length; i++) {
             this.skors.push(0);
         }
+        gameEndModal.querySelector('[data-click="setSkor"]').classList.remove('d-none');
 
         setDataToMongo('restart');
     }
@@ -264,6 +268,19 @@ class Game {
         let finish = data.levelYTH[data.levelYTH.length - 1] > 0 ? true : false
         this.levelFinished = finish;
         this.gameFinished = finish;
+        this.seted = data.seted;
+    }
+    async leaderboard() {
+        const data = await getDataToMongo("skor", "skor");
+
+        return globalLeaderboard.querySelector('.leaderboard').innerHTML = data.map(x => `<div>${x.name}: ${x.skor}</div>`).slice(0, 10).join('\n');
+    }
+    set seted(set) {
+        this.setedVar = set;
+        if (this.seted) setDataToMongo('seted', set);
+    }
+    get seted() {
+        return this.setedVar;
     }
 }
 
@@ -277,7 +294,9 @@ const loader = document.querySelector('.loader'),
     levelModal = document.querySelector('.levelModal'),
     LevelEndModal = document.querySelector('.LevelEndModal'),
     playerSureModal = document.querySelector('.playerSureModal'),
-    gameEndModal = document.querySelector('.gameEndModal')
+    gameEndModal = document.querySelector('.gameEndModal'),
+    setSkorModal = document.querySelector('.setSkorModal'),
+    globalLeaderboard = document.querySelector('.globalLeaderboard');
 
 // function variables
 let globalRepet = [],
@@ -288,8 +307,9 @@ let globalRepet = [],
     isTimeOutModal = false,
     numberList = [];
 
-const game = new Game(12, 6);
+const game = new Game(5, 6);
 createLevelButtons();
+const start = new Date();
 let data = await getDataToMongo();
 if (data) game.setData(data);
 else {
@@ -297,15 +317,17 @@ else {
     data = await getDataToMongo();
     if (data) game.setData(data);
 }
+const end = new Date();
 removeDnoneOnButton();
-setTimeout(() => {
+let int = setTimeout(() => {
     loader.classList.add('modalOrSceneAnim');
     gameStartScene.classList.remove('d-none');
     setTimeout(() => {
         loader.classList.add('d-none');
         gameStartScene.classList.remove('modalOrSceneAnim');
     }, 500);
-}, 2500);
+}, 2500 - (end - start));
+if (!data) clearInterval(int);
 
 const audio = document.getElementById('backgroundMusic');
 const volume = document.getElementById('volume');
@@ -527,7 +549,7 @@ for (const button of levelModalButtons) {
 
 const gameEndModalButtons = [...gameEndModal.children].filter(x => x.tagName == 'BUTTON');
 for (const button of gameEndModalButtons) {
-    button.addEventListener('click', e => {
+    button.addEventListener('click', async e => {
         const { click } = button.dataset;
         if (click == 'back') {
             clearInterval(game.confettiInterval);
@@ -546,9 +568,76 @@ for (const button of gameEndModalButtons) {
                 gameScene.classList.add('d-none');
                 gameEndModal.classList.add('d-none');
             }, 300);
+        } else if (click == "setSkor" && !game.seted) {
+            setSkorModal.classList.remove('d-none');
+            setTimeout(() => {
+                setSkorModal.classList.remove('modalOrSceneAnim');
+            }, 1);
+            setTimeout(() => {
+                gameEndModal.querySelector('[data-click="setSkor"]').classList.add('d-none');
+            }, 300);
+        } else if (click == 'globalLeaderboard') {
+            await game.leaderboard();
+            globalLeaderboard.classList.remove('d-none');
+            setTimeout(() => {
+                globalLeaderboard.classList.remove('modalOrSceneAnim');
+            }, 1);
         }
+        console.log(click == "setSkor", !game.seted, click == "setSkor" && !game.seted)
     });
 }
+
+const inputBrokerList = ["<", ">"];
+const setSkorModalButtons = [...setSkorModal.children].filter(x => x.tagName == 'BUTTON');
+const input = setSkorModal.querySelector('input');
+for (const button of setSkorModalButtons) {
+    button.addEventListener('click', async e => {
+        if (input.value > 50 || inputBrokerList.some(broker => input.value.includes(broker))) {
+            input.style.border = ".1vw solid red";
+            return;
+        } else if (game.seted) {
+            setSkorModal.classList.add('modalOrSceneAnim');
+            globalLeaderboard.classList.remove('d-none');
+            setTimeout(() => {
+                globalLeaderboard.classList.remove('modalOrSceneAnim');
+            }, 1);
+            setTimeout(() => {
+                setSkorModal.classList.add('d-none');
+            }, 300);
+            return;
+        }
+        game.seted = true;
+        await setDataToMongo('name', input.value, game.getTotalSkor());
+        game.leaderboard();
+        setSkorModal.classList.add('modalOrSceneAnim');
+        globalLeaderboard.classList.remove('d-none');
+        setTimeout(() => {
+            globalLeaderboard.classList.remove('modalOrSceneAnim');
+        }, 1);
+        setTimeout(() => {
+            setSkorModal.classList.add('d-none');
+        }, 300);
+    })
+}
+
+function leaderboard() {
+    const globalLeaderboardButtons = globalLeaderboard.querySelectorAll('button');
+    for (const button of globalLeaderboardButtons) {
+        button.addEventListener('click', e => {
+            const { click } = button.dataset;
+            console.log(click)
+
+            if (click == "close") {
+                globalLeaderboard.classList.add('modalOrSceneAnim');
+                setTimeout(() => {
+                    globalLeaderboard.classList.add('d-none');
+                }, 300);
+            }
+        })
+    }
+}
+leaderboard()
+
 
 function levelModalButtonsDisable() {
     let { level } = game;
@@ -678,7 +767,7 @@ async function isChecked(card1, card2) {
         game.brokeListener.push(card1, card2);
         if (customCards.length / 2 == game.isCheckedSize) {
             await new Promise(res => setTimeout(() => res(), 1000));
-            const skor = game.setSkor();
+            const skor = await game.setSkor();
 
             if (skor >= game.getNeedSkor()) game.levelEnd(true);
             else game.levelEnd(false);
@@ -978,8 +1067,8 @@ function pushCards(cards) {
     return cardsDiv;
 }
 
-async function setDataToMongo(where, data) {
-    return fetch(`http://localhost:3000/${where}`, {
+async function setDataToMongo(where, data, skors = "") {
+    return fetch(`http://localhost:3000/${where}${!!skors ? "/" + skors : ""}`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -992,8 +1081,8 @@ async function setDataToMongo(where, data) {
     });
 }
 
-async function getDataToMongo(where = "") {
-    return fetch(`http://localhost:3000/${where}`).then(res => res.json()).then(({ data }) => data).catch(() => {
+async function getDataToMongo(where = "", skors = "") {
+    return fetch(`http://localhost:3000/${where}${!!skors ? "/" + skors : ""}`).then(res => res.json()).then(({ data }) => data).catch(() => {
         console.error('%cSunucuya Bağlanamıyorum', 'font-size: 24px; color: red;');
         return false;
     });

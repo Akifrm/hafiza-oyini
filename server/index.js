@@ -1,6 +1,7 @@
 import express from 'express';
 import { connect } from 'mongoose';
 import users from './model/users.js';
+import skors from './model/skors.js';
 import cors from 'cors';
 
 const app = express();
@@ -19,36 +20,58 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/:req', (req, res) => {
+app.post('/:req?/:skor?', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { params } = req;
 
-    let data = { [params.req]: req.body.data };
-    let restart = {
-        gameHardLevel: "",
-        level: 1,
-        levelYTH: [0]
+    if (params.skor) {
+        const skor = Number(params.skor);
+
+        if (isNaN(skor)) return res.status(400).send('Error: Unable to retrieve the number.');
+
+        // skors.updateOne({ ip }, { name: req.body.data, skor }, { upsert: true })
+        new skors({ ip, skor, name: req.body.data }).save().then(() => {
+            res.status(200).json({ status: 'ok' });
+        }).catch(err => {
+            res.status(500).json({ status: 'error' });
+            console.log(err);
+        });
+    } else {
+        let data = { [params.req]: req.body.data };
+        let restart = {
+            gameHardLevel: "",
+            level: 1,
+            levelYTH: [0]
+        }
+        users.updateOne({ ip }, { $set: params.req == 'restart' ? restart : data }, { upsert: true }).then(() => {
+            res.status(200).json({ status: 'ok' });
+        }).catch(err => {
+            res.status(500).json({ status: 'error' });
+            console.log(err);
+        })
     }
-    users.updateOne({ ip }, { $set: params.req == 'restart' ? restart : data }, { upsert: true }).then(() => {
-        res.status(200).json({ status: 'ok' });
-    }).catch(err => {
-        res.status(500).json({ status: 'error' });
-        console.log(err);
-    })
 });
 
-app.get('/:req', async (req, res) => {
+app.get('/:req?/:skor?', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { params } = req;
 
-    users.findOne({ ip }).then(data => {
-        res.json({
-            data: data[params.req]
-        })
-    }).catch(err => {
-        res.status(500).json({ status: 'error' });
-        console.log(err);
-    })
+    if (params.skor)
+        skors.find({}).then(data => res.json({ data })); // buraya mongodb filtresi eklenebilir ama şu an için gerek duymadım
+    else {
+        users.findOne({ ip }).then(data => {
+            let resData;
+            if (typeof params.req == "undefined") resData = data;
+            else resData = data[params.req];
+
+            res.json({
+                data: resData
+            })
+        }).catch(err => {
+            res.status(500).json({ status: 'error' });
+            console.log(err);
+        });
+    }
 });
 
 app.get('/', (req, res) => {

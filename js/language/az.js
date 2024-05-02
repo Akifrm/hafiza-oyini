@@ -25,5 +25,9 @@ export default {
     "total_remaining_yth": "Ümumi Qalan YTH: ",
     "total_score": "Ümumi Nəticə: ",
     "close_code": "Bağlama kodu işlədi, ancaq bağlanmadı; səbəb, istifadə etdiyiniz brauzerdir (xəta konsolda qeyd olunur)",
-    "remaining_yth": "Qalan YTH: "
+    "remaining_yth": "Qalan YTH: ",
+    "set_skor": "Nəticənizi saxlamaq istəyirsinizmi?",
+    "name": "Ad: ",
+    "save": "Saxla",
+    "leaderboard": "Liderlik cədvəlini görmək istəyirsiniz?"
 }
