@@ -26,6 +26,7 @@ class Game {
         this.playingLevel = 0;
         this.confettiInterval;
         this.setedVar = false;
+        this.brokeClick = false;
         this.languageList = {
             'tr': tr,
             'az': az,
@@ -54,6 +55,7 @@ class Game {
         this.brokeListener = [];
         this.levelFinished = false;
         globalRepet = [], kacinciyedek = 0, idList = [], numberList = [];
+        this.brokeClick = false;
         if (newLevel == 'restart') this.restartDatabase();
 
         let playingLevel = newLevel == 'restart'
@@ -82,6 +84,7 @@ class Game {
         return true;
     }
     levelEnd(nextLevel = false) {
+        this.brokeClick = true;
         if (nextLevel && this.getGameEnd()) {
             if (this.playingLevel >= this.level) this.setLevel(this.level + 1);
             return true;
@@ -123,6 +126,7 @@ class Game {
     async setSkor(level = this.level) {
         let skor = this.yth * this.ythToSkor;
         this.skor += skor;
+        console.log(this.skor, skor, this.skors[level - 1], this.skors[level - 1] < skor);
 
         if (this.skors[level - 1] < skor) {
             this.seted = false;
@@ -256,6 +260,7 @@ class Game {
             const txt = text.dataset.lang;
             text.innerText = txt.replace(`${txt}`, lang[txt]);
         }
+        createLevelButtons(this);
     }
     getLang() {
         return this.languageList[this.user.language];
@@ -268,7 +273,7 @@ class Game {
         let finish = data.levelYTH[data.levelYTH.length - 1] > 0 ? true : false
         this.levelFinished = finish;
         this.gameFinished = finish;
-        this.seted = data.seted;
+        this.setedVar = data.seted;
     }
     async leaderboard() {
         const data = await getDataToMongo("skor", "skor");
@@ -308,7 +313,7 @@ let globalRepet = [],
     numberList = [];
 
 const game = new Game(5, 6);
-createLevelButtons();
+createLevelButtons(game);
 const start = new Date();
 let data = await getDataToMongo();
 if (data) game.setData(data);
@@ -592,7 +597,7 @@ const setSkorModalButtons = [...setSkorModal.children].filter(x => x.tagName == 
 const input = setSkorModal.querySelector('input');
 for (const button of setSkorModalButtons) {
     button.addEventListener('click', async e => {
-        if (input.value > 50 || inputBrokerList.some(broker => input.value.includes(broker))) {
+        if (input.value > 50 || inputBrokerList.some(broker => input.value.includes(broker)) || game.skors.every(skor => skor < game.getNeedSkor())) {
             input.style.border = ".1vw solid red";
             return;
         } else if (game.seted) {
@@ -653,7 +658,8 @@ function removeDnoneOnButton() {
 }
 levelModalButtonsDisable();
 
-function createLevelButtons() {
+function createLevelButtons(game) {
+    levelModal.innerHTML = "";
     let length = Object.keys(game.levelList).length;
     for (let i = 0; i < length; i++) {
         const button = document.createElement('button');
@@ -693,7 +699,7 @@ function customCardsRepeat() {
         */
 
         crd.addEventListener('click', async () => {
-            if (game.brokeListener.includes(crd)) return;
+            if (game.brokeListener.includes(crd) || game.brokeClick) return;
             if (isTimeOut) {
                 if (!isTimeOutModal) {
                     isTimeOutModal = true
