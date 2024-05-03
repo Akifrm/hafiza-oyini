@@ -23,7 +23,12 @@ export default model("users", new Schema({
     levelYTH: {
         type: [Number],
         required: true,
-        default: [0, 0, 0, 0, 0]
+        default: []
+    },
+    language: {
+        type: String,
+        required: true,
+        default: ""
     },
     seted: {
         type: Boolean,

@@ -100,8 +100,9 @@ class Game {
         skorDiv.innerText = `${lang.score}${skor}`;
         loseOrWin.innerText = lang.level_failed;
         loseOrWin.classList.add('text-danger');
+        const nextLevelButton = LevelEndModal.querySelector('button:last-child');
+        nextLevelButton.classList.add('d-none');
         if (nextLevel) {
-            const nextLevelButton = LevelEndModal.querySelector('button:last-child');
             nextLevelButton.classList.remove('d-none');
             this.levelFinished = true;
             loseOrWin.innerText = lang.level_success;
@@ -126,7 +127,6 @@ class Game {
     async setSkor(level = this.level) {
         let skor = this.yth * this.ythToSkor;
         this.skor += skor;
-        console.log(this.skor, skor, this.skors[level - 1], this.skors[level - 1] < skor);
 
         if (this.skors[level - 1] < skor) {
             this.seted = false;
@@ -231,9 +231,9 @@ class Game {
         }
         gameEndModal.querySelector('[data-click="setSkor"]').classList.remove('d-none');
 
-        setDataToMongo('restart');
+        setDataToMongo('restart', this.levelCount);
     }
-    changeLang(language = (navigator.language || navigator.userLanguage).split('-')[0] || 'tr') {
+    changeLang(language = this.user.language || (navigator.language || navigator.userLanguage).split('-')[0] || 'tr') {
         const langs = [...settingsScene.querySelectorAll('.language')];
         this.user.language = language;
 
@@ -266,7 +266,14 @@ class Game {
         return this.languageList[this.user.language];
     }
     setData(data) {
-        this.skors = data.levelYTH;
+        if (this.skors.length <= data.levelYTH.length)
+            this.skors = data.levelYTH;
+        else {
+            for (let i = 0; i < data.levelYTH.length; i++) {
+                this.skors[i] = data.levelYTH[i];
+            }
+            setDataToMongo('levelYTH', this.skors);
+        }
         this.level = data.level;
         this.gameHardLevel = data.gameHardLevel;
 
@@ -274,11 +281,16 @@ class Game {
         this.levelFinished = finish;
         this.gameFinished = finish;
         this.setedVar = data.seted;
+        if (data.language) {
+            this.user.language = data.language;
+            this.changeLang();
+        } else
+            setDataToMongo('language', this.user.language);
     }
     async leaderboard() {
         const data = await getDataToMongo("skor", "skor");
 
-        return globalLeaderboard.querySelector('.leaderboard').innerHTML = data.map(x => `<div>${x.name}: ${x.skor}</div>`).slice(0, 10).join('\n');
+        return globalLeaderboard.querySelector('.leaderboard').innerHTML = data.sort((a, b) =>  b.skor - a.skor).map(x => `<div>${x.name}: ${x.skor}</div>`).slice(0, 10).join('\n');
     }
     set seted(set) {
         this.setedVar = set;
@@ -302,6 +314,7 @@ const loader = document.querySelector('.loader'),
     gameEndModal = document.querySelector('.gameEndModal'),
     setSkorModal = document.querySelector('.setSkorModal'),
     globalLeaderboard = document.querySelector('.globalLeaderboard');
+let levelModalButtons = [...levelModal.children].filter(x => x.tagName == 'BUTTON');
 
 // function variables
 let globalRepet = [],
@@ -318,7 +331,7 @@ const start = new Date();
 let data = await getDataToMongo();
 if (data) game.setData(data);
 else {
-    await setDataToMongo('restart');
+    await setDataToMongo('restart', game.levelCount);
     data = await getDataToMongo();
     if (data) game.setData(data);
 }
@@ -439,6 +452,7 @@ for (const button of settingsSceneButtons) {
             }
 
             if (!button.classList.value.includes('activeLanguage')) {
+                setDataToMongo('language', button.dataset.changelang);
                 game.changeLang(button.dataset.changelang);
                 settingsScene.querySelector('.activeLanguage').classList.remove('activeLanguage');
                 button.classList.add('activeLanguage');
@@ -463,7 +477,6 @@ for (const button of hardLevelButtons) {
     })
 }
 
-const levelModalButtons = [...levelModal.children].filter(x => x.tagName == 'BUTTON');
 const LevelEndModalButtons = [...LevelEndModal.children[LevelEndModal.children.length - 1].children].filter(x => x.tagName == 'BUTTON');
 for (const button of LevelEndModalButtons) {
     button.addEventListener('click', e => {
@@ -488,7 +501,7 @@ for (const button of LevelEndModalButtons) {
                 gameScene.classList.add('d-none');
             }, 300);
         } else if (click == 'levelModal') {
-            levelModalButtonsDisable();
+            levelModalButtonsDisable(game);
             levelModal.classList.remove('d-none');
             gameScene.classList.add('modalOrSceneAnim');
             setTimeout(() => {
@@ -516,10 +529,10 @@ for (const button of playerSureModalButtons) {
     button.addEventListener('click', e => {
         const { click } = button.dataset;
         if (click == 'yes') {
-            game.restart('restart');
+            game.restart('restart', game.levelCount);
             gameStartScene.classList.add('modalOrSceneAnim');
             hardLevel.classList.remove('d-none');
-            levelModalButtonsDisable();
+            levelModalButtonsDisable(game);
 
             setTimeout(() => {
                 hardLevel.classList.remove('modalOrSceneAnim');
@@ -536,28 +549,13 @@ for (const button of playerSureModalButtons) {
     });
 }
 
-for (const button of levelModalButtons) {
-    button.addEventListener('click', e => {
-        let { level } = game;
-        if (!(levelModalButtons.indexOf(button) < level) || levelModalButtons.filter(btn => !btn.disabled).length > level) return;
-        levelModal.classList.add('modalOrSceneAnim');
-        gameScene.classList.add('modalOrSceneAnim');
-        gameStartScene.classList.add('modalOrSceneAnim');
-        setTimeout(() => {
-            levelModal.classList.add('d-none');
-            gameStartScene.classList.add('d-none');
-            game.restart(levelModalButtons.indexOf(button) + 1);
-            game.start();
-        }, 300);
-    });
-}
-
 const gameEndModalButtons = [...gameEndModal.children].filter(x => x.tagName == 'BUTTON');
 for (const button of gameEndModalButtons) {
     button.addEventListener('click', async e => {
         const { click } = button.dataset;
         if (click == 'back') {
             clearInterval(game.confettiInterval);
+            levelModalButtonsDisable(game);
             for (const button of gameStartSceneButtons) {
                 button.disabled = false;
             }
@@ -588,7 +586,6 @@ for (const button of gameEndModalButtons) {
                 globalLeaderboard.classList.remove('modalOrSceneAnim');
             }, 1);
         }
-        console.log(click == "setSkor", !game.seted, click == "setSkor" && !game.seted)
     });
 }
 
@@ -625,12 +622,29 @@ for (const button of setSkorModalButtons) {
     })
 }
 
+function levelButtons(game) {
+    for (const button of levelModalButtons) {
+        button.addEventListener('click', e => {
+            let { level } = game;
+            if (!(levelModalButtons.indexOf(button) < level) || levelModalButtons.filter(btn => !btn.disabled).length > level) return;
+            levelModal.classList.add('modalOrSceneAnim');
+            gameScene.classList.add('modalOrSceneAnim');
+            gameStartScene.classList.add('modalOrSceneAnim');
+            setTimeout(() => {
+                levelModal.classList.add('d-none');
+                gameStartScene.classList.add('d-none');
+                game.restart(levelModalButtons.indexOf(button) + 1);
+                game.start();
+            }, 300);
+        });
+    }
+}
+
 function leaderboard() {
     const globalLeaderboardButtons = globalLeaderboard.querySelectorAll('button');
     for (const button of globalLeaderboardButtons) {
         button.addEventListener('click', e => {
             const { click } = button.dataset;
-            console.log(click)
 
             if (click == "close") {
                 globalLeaderboard.classList.add('modalOrSceneAnim');
@@ -644,7 +658,7 @@ function leaderboard() {
 leaderboard()
 
 
-function levelModalButtonsDisable() {
+function levelModalButtonsDisable(game) {
     let { level } = game;
     for (const button of levelModalButtons) {
         if (!(levelModalButtons.indexOf(button) < level)) button.disabled = true;
@@ -656,7 +670,6 @@ function removeDnoneOnButton() {
     if (game.gameHardLevel && game.level <= Object.keys(game.levelList).length) gameStartScene.querySelector('button').classList.remove('d-none');
     else gameStartScene.querySelector('button').classList.add('d-none');
 }
-levelModalButtonsDisable();
 
 function createLevelButtons(game) {
     levelModal.innerHTML = "";
@@ -671,6 +684,9 @@ function createLevelButtons(game) {
     }
 
     if (length > 7) levelModal.style.flexDirection = 'column';
+    levelModalButtons = [...document.querySelector('.levelModal').children].filter(x => x.tagName == 'BUTTON')
+    levelModalButtonsDisable(game);
+    levelButtons(game);
 }
 
 function cutstomConfetti(e) {

@@ -41,8 +41,14 @@ app.post('/:req?/:skor?', (req, res) => {
         let restart = {
             gameHardLevel: "",
             level: 1,
-            levelYTH: [0]
+            levelYTH: []
         }
+        if (!isNaN(req.body.data)) {
+            for (let i = 0; i < req.body.data; i++) {
+                restart.levelYTH[i] = 0;
+            }
+        }
+
         users.updateOne({ ip }, { $set: params.req == 'restart' ? restart : data }, { upsert: true }).then(() => {
             res.status(200).json({ status: 'ok' });
         }).catch(err => {
