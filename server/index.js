@@ -6,7 +6,7 @@ import cors from 'cors';
 
 const app = express();
 const port = process.env.port || 3000;
-const url = "mongodb+srv://akifcagliworkforweb:saergkweprgwergwerg5864we5rg41w6erg@cluster0.h75cbbf.mongodb.net/Cluster1?retryWrites=true&w=majority";
+const url = "mongo token";
 
 connect(url).then(() => {
     console.log("MongoDB'ye başarıyla bağlanıldı");
